@@ -1,0 +1,70 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# AP module
+[[patches]]
+[patches.module]
+source = "ap/init.lua"
+before = "main.lua"
+name = "ap"
+
+[[patches]]
+[patches.module]
+source = "ap/gui.lua"
+before = "main.lua"
+name = "ap.gui"
+
+[[patches]]
+[patches.module]
+source = "ap/utils.lua"
+before = "main.lua"
+name = "ap.utils"
+
+[[patches]]
+[patches.pattern]
+target = "main.lua"
+pattern = "function love.load(args)"
+position = "after"
+payload = '''ap = require("ap")'''
+match_indent = true
+
+# [[patches]]
+# [patches.pattern]
+# target = "main.lua"
+# pattern = "dpf.patchLoveFilesystem()"
+# position = "after"
+# payload = '''ap.utils.init()
+# print("AP savedata loaded")'''
+# match_indent = true
+
+# Send Checks
+[[patches]]
+[patches.pattern]
+target = "states/Results.lua"
+pattern = "savedata.lastPlayedLevel = cLevel"
+position = "after"
+payload = '''
+ap.send("Level: " .. cLevel .. " | Grade: " .. self.pctGrade .. " | misses: " .. self.misses .. " | Barelies: " .. self.barelies)
+'''
+match_indent = true
+
+
+# add menu button
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = "self.mainMenu:addOption('credits',function()"
+position = "before"
+payload = '''
+self.mainMenu:addOption('Archipelago', function()
+	cs = bs.load('AP')
+	cs.bg = self.bg
+	self.menuMusicManager:clearOnBeatHooks()
+	self:leave()
+	cs.menuMusicManager = self.menuMusicManager
+	cs:init()
+end, 17 * 8, nil, sprites.menu.archipelago)
+'''
+match_indent = true
