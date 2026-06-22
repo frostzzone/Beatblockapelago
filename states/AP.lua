@@ -6,7 +6,7 @@ local save = ap.utils.dpf.loadJson("save.json", { apslot = "" })
 
 -- ap.get_all_levels()
 
-local apip = "archipelago.gg"
+local apip = save.apip or "archipelago.gg"
 local apslot = save.apslot or ""
 local appassword = ""
 local apreset = false
@@ -23,7 +23,9 @@ function st:backroundInit()
 end
 
 function st:saveData()
+	save.apip = apip
 	save.apslot = apslot
+	-- No im not gonna save the password
 	ap.utils.dpf.saveJson("save.json", save)
 end
 
@@ -41,12 +43,18 @@ st:setInit(function(self) -- initialization function, called when the state is l
 
 	self.optionsList:addOption("Join", function()
 		self:saveData()
-		print("Join")
+		ap.join(apip, apslot, appassword)
 	end, optionsHeight * 0)
 
+	self.optionsList:addOption("leave", function()
+		ap.leave()
+	end, optionsHeight * 1)
+	-- TODO: Add yaml creation ingame
+	--[[
 	self.optionsList:addOption("Create Yaml", function()
 		self:switchState("ap-yaml")
 	end, optionsHeight * 1)
+	]]
 
 	self.optionsList:addOption("Settings", "settings", optionsHeight * 3)
 	self.optionsList:defineSubmenu("settings")
@@ -88,7 +96,11 @@ end)
 function st:switchState(state)
 	self:saveData()
 
-	love.mouse.setVisible(false)
+	-- return to ingame cursor if the settings say so
+	if savedata.options.game.customCursorInMenu and (savedata.options.game.cursorMode ~= "default") then
+		love.mouse.setVisible(false)
+	end
+	
 	love.keyboard.setTextInput(false)
 
 	ap.gui.popStyle()
@@ -186,7 +198,8 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 	imgui.SameLine(200 - imgui.GetCursorPosX())
 	appassword = helpers.InputText("##password", appassword)
 
-	---[[
+	imgui.Text("Connected: " .. tostring(ap.client ~= nill))
+	--[[ 
 	imgui.Text("Dont Reset:")
 	imgui.SameLine(200 - imgui.GetCursorPosX())
 	apreset = helpers.InputBool("##reset", apreset)

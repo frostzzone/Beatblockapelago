@@ -50,6 +50,10 @@ Go to `ap-block\lua-apclientpp` and drag the `lua-apclientpp.dll` file to the ro
 
 ## Todo
 (kinda in order of priority)
+
+- [ ] Deathlink 
+  - [X] Send
+  - [ ] Receive
 - [ ] Add a way to add custom/workshop levels into the randomizer
 - [ ] Allow choosing target rank
 - [ ] Add marathons to the pool

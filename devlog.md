@@ -41,3 +41,7 @@
 - Made a basic menu for ap state
 - init git (i forgot to do this earlier)
 - FIVE NIGHTS AT FREDDYS
+
+## 2026-06-21
+- Made apclientpp actually connect and send deathlink if enabled
+- thats pretty much it (i spent most of the time on the apworld)

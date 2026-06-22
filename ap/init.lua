@@ -5,12 +5,13 @@ local ap = {}
 ap.gui = require("ap.gui")
 ap.utils = require("ap.utils")
 
-ap.connected = false
+ap.client = nil
 
 local got_all_levels = false
 ap.levels = {}
 
 -- Because im lazy and levels cant be preloaded
+--[[
 function ap.get_all_levels()
 	if not got_all_levels then
 		print("Getting all levels")
@@ -35,20 +36,11 @@ function ap.get_all_levels()
 		print("Already got all levels")
 	end
 end
+]]
 
 -- Dev stuff
 
 local dev = {}
-
-function dev.connect()
-	ap.connected = true
-	print("connected")
-end
-
-function dev.disconnect()
-	ap.connected = false
-	print("disconnected")
-end
 
 function dev.send(msg)
 	print("sending: " .. msg)
@@ -58,10 +50,6 @@ function dev.receive(msg)
 	print("received: " .. msg)
 end
 
--- Send
-function ap.send(msg)
-	dev.send(msg)
-end
 
 --[[
     Notes:
@@ -84,22 +72,69 @@ end
             Barelies: 84
 ]]
 
---[[
+-- Send
+function ap.send(msg)
+	dev.send(msg)
+end
+
+function ap.join(host, slot, password)
+	connect(host, slot, password)
+end
+
+function ap.leave()
+    if ap.client == nil then
+        return
+    end
+	-- ap.client:Disconnect()
+    print("Force Disconnecting")
+    ap.client = nil
+    collectgarbage("collect")
+end
+
+function ap.IsDeathlinkOn()
+	if ap.data.slot_data and ap.data.slot_data.death_link then
+			return true
+	end
+	return false
+end
+
+-- send out deathlink
+function ap.sendDeathLink(cause, source)
+    if ap.client == nil then
+        print("AP client is not connected")
+        return
+    end
+    if not ap.IsDeathlinkOn() then
+        print("Deathlink is not on")
+        return
+    end
+
+    print("sendDeathLink started")
+    cause = cause or "Beatblock"
+    source = source or ap.data.slot or "BeatblockPlayer"
+    local time = ap.client:get_server_time()
+    print("AP:sendDeathLink " .. tostring(time) .. " " .. cause .. " " .. source)
+    local res = ap.client:Bounce({
+        time = time,
+        cause = cause,
+        source = source
+    }, {}, {}, {"DeathLink"})
+end
+
+-- level to id
+-- IDK
+
+-- AP client
 -- global to this mod
 local game_name = "Beatblockapelago"
 local items_handling = 7  -- full remote
 local client_version = {0, 5, 1}  -- optional, defaults to lib version
-local message_format = ap.client.RenderFormat.TEXT
+local message_format = apclientpp.RenderFormat.TEXT
 
----@type apClient
-local ap.client = nil
- 
+---@type APClient
+ap.client = nil
 
--- TODO: user input
-local host = "localhost"
-local slot = "Player1"
-local password = ""
-
+ap.data = {}
 
 function connect(server, slot, password)
     function on_socket_connected()
@@ -112,6 +147,8 @@ function connect(server, slot, password)
 
     function on_socket_disconnected()
         print("Socket disconnected")
+        ap.client = nil
+        collectgarbage("collect")
     end
 
     function on_room_info()
@@ -120,41 +157,52 @@ function connect(server, slot, password)
     end
 
     function on_slot_connected(slot_data)
-        assert(not pcall(function() ap.client:get_item_name(64055) end)) -- not valid anymore, need 2nd arg
-        assert(ap.client:get_item_name(64055, nil) == ap.client:get_item_name(64055, ap.client:get_game()))
-        assert(not pcall(function() ap.client:get_location_name(64000) end)) -- not valid anymore, need 2nd arg
-        assert(ap.client:get_location_name(64000, nil) == ap.client:get_location_name(64000, ap.client:get_game()))
-
-        if ap.client:get_game() == "Secret of Evermore" then
-            assert(ap.client:get_item_name(64055, nil) == "Bronze Axe")
-            assert(ap.client:get_item_name(64055, "Timespinner") ~= "Bronze Axe")
-            assert(ap.client:get_location_name(64000, "Secret of Evermore") == "Acid Rain")
-            assert(ap.client:get_location_name(64000, "Timespinner") ~= "Acid Rain")
-        end
-
         print("Slot connected")
-        print(slot_data)
-        print("missing locations: " .. table.concat(ap.client.missing_locations, ", "))
-        print("checked locations: " .. table.concat(ap.client.checked_locations, ", "))
-        ap.client:Say("Hello World!")
-        ap.client:Bounce({name="test"}, {game_name})
-        local extra = {nonce = 123}  -- optional extra data will be in the server reply
-        ap.client:Get({"counter"}, extra)
-        ap.client:Set("counter", 0, true, {{"add", 1}}, extra)
-        ap.client:Set("empty_array", nil, true, {{"replace", ap.client.EMPTY_ARRAY}})
-        ap.client:ConnectUpdate(nil, {"Lua-ap.clientClientPP", "DeathLink"})
-        ap.client:LocationChecks({64000, 64001, 64002})
-        print("Players:")
-        local players = ap.client:get_players()
-        for _, player in ipairs(players) do
-            print("  " .. tostring(player.slot) .. ": " .. player.name ..
-                  " playing " .. ap.client:get_player_game(player.slot))
+
+        --print("slot_data: " .. bbp.utils.printTable(slot_data))
+        ap.data.slot = slot
+        ap.data.slot_data = slot_data
+        ap.data.team = ap.client:get_team_number()
+        ap.data.player_id = ap.client:get_player_number()
+
+        local tags = {"Lua-APClientPP"}
+        print("Deathlink: " .. tostring(ap.IsDeathlinkOn()))
+        if (ap.IsDeathlinkOn()) then
+            tags[#tags + 1] = "DeathLink"
         end
+
+        ap.client:ConnectUpdate(nil, tags)
+
+        -- assert(not pcall(function() ap.client:get_item_name(64055) end)) -- not valid anymore, need 2nd arg
+        -- assert(ap.client:get_item_name(64055, nil) == ap.client:get_item_name(64055, ap.client:get_game()))
+        -- assert(not pcall(function() ap.client:get_location_name(64000) end)) -- not valid anymore, need 2nd arg
+        -- assert(ap.client:get_location_name(64000, nil) == ap.client:get_location_name(64000, ap.client:get_game()))
+
+        -- print("Slot connected")
+        -- print(slot_data)
+        -- print("missing locations: " .. table.concat(ap.client.missing_locations, ", "))
+        -- print("checked locations: " .. table.concat(ap.client.checked_locations, ", "))
+        -- ap.client:Say("Hello World!")
+        -- ap.client:Bounce({name="test"}, {game_name})
+        -- local extra = {nonce = 123}  -- optional extra data will be in the server reply
+        -- ap.client:Get({"counter"}, extra)
+        -- ap.client:Set("counter", 0, true, {{"add", 1}}, extra)
+        -- ap.client:Set("empty_array", nil, true, {{"replace", apclientpp.EMPTY_ARRAY}})
+        -- ap.client:ConnectUpdate(nil, {"Lua-ap.clientClientPP"})
+        -- ap.client:LocationChecks({64000, 64001, 64002})
+        -- print("Players:")
+        -- local players = ap.client:get_players()
+        -- for _, player in ipairs(players) do
+        --     print("  " .. tostring(player.slot) .. ": " .. player.name ..
+        --           " playing " .. ap.client:get_player_game(player.slot))
+        -- end
     end
 
 
     function on_slot_refused(reasons)
         print("Slot refused: " .. table.concat(reasons, ", "))
+        ap.client = nil
+        collectgarbage("collect")
     end
 
     function on_items_received(items)
@@ -182,7 +230,7 @@ function connect(server, slot, password)
     end
 
     function on_print(msg)
-        print(msg)
+        print("Print: " .. msg)
     end
 
     function on_print_json(msg, extra)
@@ -195,13 +243,14 @@ function connect(server, slot, password)
     function on_bounced(bounce)
         print("Bounced:")
         print(bounce)
+        print("Bounced: " .. tostring(bounce.cause) .. " from " .. tostring(bounce.source))
     end
 
-    function on_retrieved(map.client, keys, extra)
+    function on_retrieved(map, keys, extra)
         print("Retrieved:")
         -- since lua tables won't contain nil values, we can use keys array
         for _, key in ipairs(keys) do
-            print("  " .. key .. ": " .. tostring(map.client[key]))
+            print("  " .. key .. ": " .. tostring(map[key]))
         end
         -- extra will include extra fields from Get
         print("Extra:")
@@ -225,7 +274,7 @@ function connect(server, slot, password)
 
 
     local uuid = ""
-    ap.client = ap.client(uuid, game_name, server);
+    ap.client = apclientpp(uuid, game_name, server);
 
     ap.client:set_socket_connected_handler(on_socket_connected)
     ap.client:set_socket_error_handler(on_socket_error)
@@ -243,18 +292,6 @@ function connect(server, slot, password)
     ap.client:set_retrieved_handler(on_retrieved)
     ap.client:set_set_reply_handler(on_set_reply)
 end
-
-
-connect(host, slot, password)
-
-print("Will run for 10 seconds ...")
-local t0 = os.clock()
-while os.clock() - t0 < 10 do
-    ap.client:poll()  -- call this e.g. once per frame
-end
-print("shutting down...");
-ap.client = nil
-collectgarbage("collect")
 
 --]]
 return ap
