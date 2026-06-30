@@ -4,7 +4,7 @@ ap.utils.dpf.setModId("ap-block")
 
 local save = ap.utils.dpf.loadJson("save.json", { apslot = "" })
 
--- ap.get_all_levels()
+ap.get_all_levels()
 
 local apip = save.apip or "archipelago.gg"
 local apslot = save.apslot or ""
@@ -42,12 +42,18 @@ st:setInit(function(self) -- initialization function, called when the state is l
 	local optionsHeight = 20
 
 	self.optionsList:addOption("Join", function()
+		if ap.client ~= nil then
+			return
+		end
+		
 		self:saveData()
 		ap.join(apip, apslot, appassword)
 	end, optionsHeight * 0)
 
 	self.optionsList:addOption("leave", function()
-		ap.leave()
+		if ap.client ~= nil then
+			ap.leave()
+		end
 	end, optionsHeight * 1)
 	-- TODO: Add yaml creation ingame
 	--[[
@@ -81,6 +87,10 @@ st:setInit(function(self) -- initialization function, called when the state is l
 
 	-- it breaks if its not wrapped in a function
 	self.optionsList.returnLoc["main"] = function()
+		if ap.client ~= nil then
+			return
+		end
+
 		self:switchState("Menu")
 	end
 
@@ -118,7 +128,13 @@ function st:switchState(state)
 end
 
 st:setUpdate(function(self, dt) -- update function, called every frame
+	if ap.client ~= nil and ap.connected then
+		self:switchState("ap-connected")
+	end
 	if maininput:pressed("back") or mouse.altpress == -1 then
+		if ap.client ~= nil then
+			return
+		end
 		self.optionsList:callReturn()
 	end
 
@@ -198,7 +214,8 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 	imgui.SameLine(200 - imgui.GetCursorPosX())
 	appassword = helpers.InputText("##password", appassword)
 
-	imgui.Text("Connected: " .. tostring(ap.client ~= nill))
+	imgui.Text("Connecting: " .. tostring(ap.client ~= nill))
+	imgui.Text("Connected: " .. tostring(ap.connected))
 	--[[ 
 	imgui.Text("Dont Reset:")
 	imgui.SameLine(200 - imgui.GetCursorPosX())

@@ -43,34 +43,25 @@ end'''
 match_indent = true
 
 # FISH 
-# function st:startShowCatch(fish,new)
-
 # [[patches]]
 # [patches.pattern]
 # target = "main.lua"
-# pattern = "dpf.patchLoveFilesystem()"
+# pattern = "function st:startShowCatch(fish,new)"
 # position = "after"
-# payload = '''ap.utils.init()
+# payload = '''ap.gotFish(fish, )
 # print("AP savedata loaded")'''
 # match_indent = true
 
-# Damoclism Deathlink
-[[patches]]
-[patches.pattern]
-target = "obj/level/damoclism/Damoclism.lua"
-pattern = "function Damoclism:killPlayer()"
-position = "after"
-payload = '''ap.sendDeathLink("Execution of Crowns")'''
-match_indent = true
-
-# Send Checks
+# Send Results
 [[patches]]
 [patches.pattern]
 target = "states/Results.lua"
 pattern = "savedata.lastPlayedLevel = cLevel"
 position = "after"
 payload = '''
-ap.send("Level: " .. cLevel .. " | Grade: " .. self.pctGrade .. " | misses: " .. self.misses .. " | Barelies: " .. self.barelies)
+if ap.client ~= nil then
+	ap.checkResults(cLevel, self)
+end
 '''
 match_indent = true
 

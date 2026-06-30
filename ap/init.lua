@@ -6,12 +6,12 @@ ap.gui = require("ap.gui")
 ap.utils = require("ap.utils")
 
 ap.client = nil
+ap.connected = false
 
+-- Because im lazy
 local got_all_levels = false
 ap.levels = {}
 
--- Because im lazy and levels cant be preloaded
---[[
 function ap.get_all_levels()
 	if not got_all_levels then
 		print("Getting all levels")
@@ -19,12 +19,12 @@ function ap.get_all_levels()
 		ap.level = love.filesystem.getDirectoryItems("levels/Finished levels/")
 
         -- levels/Other/fishing/
-        ap.levels["gone fishin'"] = 1
+        ap.levels["gone fishin'"] = "levels/Other/fishing"
 		for k, v in pairs(ap.level) do
 			-- Get metadata
 			local metadata = dpf.loadJson("levels/Finished levels/" .. tostring(v) .. "/manifest.json")
 			print("Path: " .. "levels/Finished levels/" .. tostring(v) .. " | " .. metadata.metadata.songName)
-			ap.levels[metadata.metadata.songName] = k+1
+			ap.levels[metadata.metadata.songName] = "levels/Finished levels/" .. tostring(v)
 		end
 
 		ap.utils.dpf.saveJson("ap_levels.json", ap.levels, function(a, b)
@@ -36,7 +36,6 @@ function ap.get_all_levels()
 		print("Already got all levels")
 	end
 end
-]]
 
 -- Dev stuff
 
@@ -44,6 +43,7 @@ local dev = {}
 
 function dev.send(msg)
 	print("sending: " .. msg)
+    ap.client:LocationChecks({1113})
 end
 
 function dev.receive(msg)
@@ -88,6 +88,8 @@ function ap.leave()
 	-- ap.client:Disconnect()
     print("Force Disconnecting")
     ap.client = nil
+    ap.data = {}
+    ap.connected = false
     collectgarbage("collect")
 end
 
@@ -124,6 +126,22 @@ end
 -- level to id
 -- IDK
 
+-- TODO: Actually check results
+-- Check results
+function ap.checkResults(level_path, results)
+    if ap.client == nil then
+        print("Hit fallback ap results return :C")
+        return
+    end
+
+    local level_name = results.level.metadata.songName
+
+    print("Checking results")
+    -- level_path: levels/Finished levels/destroydestroy/ | level_name: Destroy, Destroy (ft. eili) | Gradeb | + or -: plus
+    -- level_path: Workshop/3748025162/ | level_name: boss battle against that random npc | Gradea | + or -: plus
+    print("level_path: " .. level_path .. " | level_name: ".. level_name .. " | Grade: " .. results.lGrade .. " | + or -: " .. results.lGradePM)
+end
+
 -- AP client
 -- global to this mod
 local game_name = "Beatblockapelago"
@@ -138,16 +156,28 @@ ap.data = {}
 
 function connect(server, slot, password)
     function on_socket_connected()
+        ap.connected = true
         print("Socket connected")
     end
 
+    local connection_attempts = 0
     function on_socket_error(msg)
         print("Socket error: " .. msg)
+        connection_attempts = connection_attempts + 1
+        if connection_attempts >= 3 then
+            print("Max attempts reached, disconnecting")
+			ap.client = nil
+            ap.data = {}
+            ap.connected = false
+            collectgarbage("collect")
+        end
     end
 
     function on_socket_disconnected()
         print("Socket disconnected")
         ap.client = nil
+        ap.data = {}
+        ap.connected = false
         collectgarbage("collect")
     end
 
@@ -162,6 +192,8 @@ function connect(server, slot, password)
         --print("slot_data: " .. bbp.utils.printTable(slot_data))
         ap.data.slot = slot
         ap.data.slot_data = slot_data
+        ap.data.locations = json.decode(slot_data.locations)
+        ap.data.items = json.decode(slot_data.items)
         ap.data.team = ap.client:get_team_number()
         ap.data.player_id = ap.client:get_player_number()
 
@@ -170,6 +202,14 @@ function connect(server, slot, password)
         if (ap.IsDeathlinkOn()) then
             tags[#tags + 1] = "DeathLink"
         end
+
+        print("Target rank: " .. tostring(ap.data.slot_data.target_rank))
+        print("Ranksanity: " .. tostring(ap.data.slot_data.ranksanity))
+        print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
+
+        -- print("locations: " .. type(ap.data.locations))
+        ap.utils.printTable(ap.data.locations, "locations", 1)
+        print("items: " .. type(ap.data.items))
 
         ap.client:ConnectUpdate(nil, tags)
 
@@ -208,7 +248,7 @@ function connect(server, slot, password)
     function on_items_received(items)
         print("Items received:")
         for _, item in ipairs(items) do
-            print(item.item)
+            print(item.item .. " | Level: " .. ap.data.items[tostring(item.item)])
         end
     end
 

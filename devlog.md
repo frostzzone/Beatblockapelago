@@ -45,3 +45,8 @@
 ## 2026-06-21
 - Made apclientpp actually connect and send deathlink if enabled
 - thats pretty much it (i spent most of the time on the apworld)
+
+## 2026-06-29
+- Back to codeing
+- Started rewriting parts of the apworld because its not regestering location names or items
+

@@ -1,6 +1,6 @@
 local utils = {}
 
--- [[ EDITED DPF ]]
+-- [[ EDITED DPF ]] --
 dpf = {}
 
 local mod_id = "unset"
@@ -193,5 +193,23 @@ end
 --]]
 
 utils.dpf = dpf
+
+-- From bbp utils im to lazy to type 1 extra letter
+function utils.printTable(table, title, indent)
+	if title then
+		print(title)
+	end
+	indent = indent or 0
+	local indentStr = string.rep("  ", indent)
+
+	for k, v in pairs(table) do
+		if type(v) == "table" then
+			print(indentStr .. tostring(k) .. ":")
+			utils.printTable(v, nil, indent + 1)
+		else
+			print(indentStr .. tostring(k) .. ": " .. tostring(v))
+		end
+	end
+end
 
 return utils
