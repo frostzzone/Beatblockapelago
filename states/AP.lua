@@ -31,7 +31,7 @@ end
 
 -- [[ State functions ]]
 
-st:setInit(function(self) -- initialization function, called when the state is loaded
+st:setInit(function(self)
 	ap.gui.pushStyle()
 
 	love.mouse.setVisible(true)

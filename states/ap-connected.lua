@@ -17,7 +17,7 @@ end
 
 -- [[ State functions ]]
 
-st:setInit(function(self) -- initialization function, called when the state is loaded
+st:setInit(function(self)
 	ap.gui.pushStyle()
 
 	love.mouse.setVisible(true)
@@ -27,11 +27,15 @@ st:setInit(function(self) -- initialization function, called when the state is l
 	self.optionsList = em.init("OptionsList")
 	local optionsHeight = 20
 
-	self.optionsList:addOption("test", function()
-		ap.send("test")
-	end, optionsHeight*0)
+	-- self.optionsList:addOption("Play", function()
+	-- 	ap.send("test")
+	-- end, optionsHeight*0)
 
-	self.optionsList:addOption("back", function()
+	-- self.optionsList:addOption("Console", function()
+	-- 	self:switchState("ap-console")
+	-- end, optionsHeight*4)
+
+	self.optionsList:addOption("Leave", function()
 		self.optionsList:callReturn()
 	end, 140)
 
@@ -45,6 +49,13 @@ st:setInit(function(self) -- initialization function, called when the state is l
 
 	self.optionsList.x = project.res.cx
 	self.optionsList.y = 200
+
+	-- IDk
+	self.selectedLevel = nil
+	self.selected = {
+		level = nil,
+		variant = nil,
+	}
 
 	-- Background
 	self:backroundInit()
@@ -68,9 +79,9 @@ function st:switchState(state)
 	table.insert(entities, cs.bg)
 end
 
-st:setUpdate(function(self, dt) -- update function, called every frame
+st:setUpdate(function(self, dt)
 	if maininput:pressed("back") or mouse.altpress == -1 then
-        -- Add a Are you sure you want to leave? prompt
+        -- TODO: Add a Are you sure you want to leave? prompt
 		self.optionsList:callReturn()
 	end
 
@@ -82,7 +93,7 @@ st:setUpdate(function(self, dt) -- update function, called every frame
 	end
 end)
 
-st:setBgDraw(function(self) -- background draw function, called every frame
+st:setBgDraw(function(self)
 	love.graphics.setFont(fonts.digitalDisco)
 
 	color()
@@ -107,55 +118,83 @@ st:setBgDraw(function(self) -- background draw function, called every frame
 	})
 end)
 
-st:setFgDraw(function(self) -- foreground draw function, called every frame
+-- TODO: Actually be able to play levels
+function renderLevel(self, levelPath)
+	-- Uhhh,, difficulty selection and play button
+
+	-- Variants
+	local variants = ap.data.playable[self.selectedLevel].variants
+	for i, v in pairs(variants) do
+		local variantName = v.name
+		local variantPath = v.path
+	end
+	
+end
+
+st:setFgDraw(function(self)
 	love.graphics.setFont(fonts.digitalDisco)
 	color("black")
 
 	-- local watermarkText = "Im stupid"
 	-- love.graphics.print(watermarkText, project.res.cx * 2 - fonts.digitalDisco:getWidth(watermarkText) - 10, 6)
 
-	-- local windowWidth = imgui.canvasScale and (project.res.x * imgui.canvasScale) or love.graphics.getWidth()
-	-- local windowHeight = imgui.canvasScale and (project.res.y * imgui.canvasScale) or love.graphics.getHeight()
+	local windowWidth = imgui.canvasScale and (project.res.x * imgui.canvasScale) or love.graphics.getWidth()
+	local windowHeight = imgui.canvasScale and (project.res.y * imgui.canvasScale) or love.graphics.getHeight()
 
-	-- local padding = 60
+	local padding = 60
 
-	-- helpers.SetNextWindowPos(padding * 2, padding)
-	-- helpers.SetNextWindowSize(windowWidth - padding * 4, windowHeight - padding * 2)
+	helpers.SetNextWindowPos(padding * 2, padding)
+	helpers.SetNextWindowSize(windowWidth - padding * 4, windowHeight - padding * 2)
 
-	-- imgui.Begin("Ap Yaml", true, 295)
+	imgui.Begin("Ap Menu", true, 295)
 
-	-- imgui.SetWindowFontScale(2)
+	imgui.SetWindowFontScale(2)
 
-	-- imgui.SetCursorPosX(400)
-	-- imgui.Text("Ap Yaml")
-	-- imgui.Separator()
+	imgui.SetCursorPosX(400)
+	imgui.Text("Ap Menu")
+	imgui.Separator()
 
-	-- -- Blank line
-	-- imgui.Text("")
+	imgui.Columns(2, "main", true)
+	imgui.SetColumnWidth(imgui.GetColumnIndex(), windowWidth * 0.6)
 
-	-- imgui.Text("Ip:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apip = helpers.InputText("##ip", apip)
+	-- start level List
+	imgui.BeginChild_Str("level_list", imgui.ImVec2_Float(550 / 600 * windowWidth, windowHeight - 90), 0)
 
-	-- imgui.Text("Slot:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apslot = helpers.InputText("##slot", apslot)
+	-- {"level name": { path: "levels/Finished levels/DARKSHIP/DARKSHIP.json", variants: {...} }}
+	if ap.data.playable then
+		for k, v in pairs(ap.data.playable) do
+			local levelName = v.name
+			local levelPath = v.path
 
-	-- imgui.Text("Password:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- appassword = helpers.InputText("##password", appassword)
+			local childWidth = windowWidth * 0.59
+			local childHeight = 42
+			imgui.BeginChild_Str(levelPath, imgui.ImVec2_Float(childWidth, childHeight), 1)
+			imgui.SetWindowFontScale(2)
+			imgui.Text(levelName)
 
-	-- ---[[
-	-- imgui.Text("Dont Reset:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apreset = helpers.InputBool("##reset", apreset)
-	-- imgui.SetWindowFontScale(1)
-	-- imgui.SameLine(250 - imgui.GetCursorPosX())
-	-- imgui.Text("Incase you lose connection")
-	-- imgui.SetWindowFontScale(2)
-	-- --]]
+			-- show when clicked
+			if imgui.IsWindowHovered() and imgui.IsMouseClicked(0) then -- left click
+				self.selectedLevel = levelPath
+			end
 
-	-- imgui.End()
+			imgui.EndChild() -- end level
+		end
+	else
+		imgui.Text("No levels received")
+	end
+	imgui.EndChild() -- end level list
+
+	imgui.NextColumn()
+	imgui.SetColumnWidth(imgui.GetColumnIndex(), windowWidth * 0.39)
+
+	if ap.data.playable and self.selectedLevel then
+		imgui.BeginChild_Str("level_select" .. self.selectedLevel, imgui.ImVec2_Float(0, 0), false)
+		renderLevel(self, self.selectedLevel)
+		imgui.Text("Level: " .. self.selectedLevel)
+		imgui.EndChild()
+	end
+
+	imgui.End()
 
     -- draw options
 	self.optionsList:draw()

@@ -6,6 +6,7 @@ local config = {
     
 }
 
+-- Sorry it felt weird without them but they're stupid
 function st:backroundInit()
 	shuv.usePalette = false
 	self.bg.skipRender = true
@@ -28,6 +29,14 @@ st:setInit(function(self) -- initialization function, called when the state is l
 	self.optionsList = em.init("OptionsList")
 	local optionsHeight = 20
 
+	self.optionsList:addOption("Play", function()
+		ap.send("test")
+	end, optionsHeight*0)
+
+	self.optionsList:addOption("Console", function()
+		self.switchState("ap-console")
+	end, optionsHeight*4)
+
 	self.optionsList:addOption("back", function()
 		self.optionsList:callReturn()
 	end, 140)
@@ -36,6 +45,7 @@ st:setInit(function(self) -- initialization function, called when the state is l
 
 	-- it breaks if its not wrapped in a function
 	self.optionsList.returnLoc["main"] = function()
+		ap.leave()
 		self:switchState("AP")
 	end
 
@@ -66,6 +76,7 @@ end
 
 st:setUpdate(function(self, dt) -- update function, called every frame
 	if maininput:pressed("back") or mouse.altpress == -1 then
+        -- Add a Are you sure you want to leave? prompt
 		self.optionsList:callReturn()
 	end
 
@@ -106,48 +117,51 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 	love.graphics.setFont(fonts.digitalDisco)
 	color("black")
 
-	local windowWidth = imgui.canvasScale and (project.res.x * imgui.canvasScale) or love.graphics.getWidth()
-	local windowHeight = imgui.canvasScale and (project.res.y * imgui.canvasScale) or love.graphics.getHeight()
+	-- local watermarkText = "Im stupid"
+	-- love.graphics.print(watermarkText, project.res.cx * 2 - fonts.digitalDisco:getWidth(watermarkText) - 10, 6)
 
-	local padding = 60
+	-- local windowWidth = imgui.canvasScale and (project.res.x * imgui.canvasScale) or love.graphics.getWidth()
+	-- local windowHeight = imgui.canvasScale and (project.res.y * imgui.canvasScale) or love.graphics.getHeight()
 
-	helpers.SetNextWindowPos(padding * 2, padding)
-	helpers.SetNextWindowSize(windowWidth - padding * 4, windowHeight - padding * 2)
+	-- local padding = 60
 
-	imgui.Begin("Ap Yaml", true, 295)
+	-- helpers.SetNextWindowPos(padding * 2, padding)
+	-- helpers.SetNextWindowSize(windowWidth - padding * 4, windowHeight - padding * 2)
 
-	imgui.SetWindowFontScale(2)
+	-- imgui.Begin("Ap Yaml", true, 295)
 
-	imgui.SetCursorPosX(400)
-	imgui.Text("Ap Yaml")
-	imgui.Separator()
+	-- imgui.SetWindowFontScale(2)
 
-	-- Blank line
-	imgui.Text("")
+	-- imgui.SetCursorPosX(400)
+	-- imgui.Text("Ap Yaml")
+	-- imgui.Separator()
 
-	imgui.Text("Ip:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apip = helpers.InputText("##ip", apip)
+	-- -- Blank line
+	-- imgui.Text("")
 
-	imgui.Text("Slot:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apslot = helpers.InputText("##slot", apslot)
+	-- imgui.Text("Ip:")
+	-- imgui.SameLine(200 - imgui.GetCursorPosX())
+	-- -- apip = helpers.InputText("##ip", apip)
 
-	imgui.Text("Password:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- appassword = helpers.InputText("##password", appassword)
+	-- imgui.Text("Slot:")
+	-- imgui.SameLine(200 - imgui.GetCursorPosX())
+	-- -- apslot = helpers.InputText("##slot", apslot)
 
-	---[[
-	imgui.Text("Dont Reset:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apreset = helpers.InputBool("##reset", apreset)
-	imgui.SetWindowFontScale(1)
-	imgui.SameLine(250 - imgui.GetCursorPosX())
-	imgui.Text("Incase you lose connection")
-	imgui.SetWindowFontScale(2)
-	--]]
+	-- imgui.Text("Password:")
+	-- imgui.SameLine(200 - imgui.GetCursorPosX())
+	-- -- appassword = helpers.InputText("##password", appassword)
 
-	imgui.End()
+	-- ---[[
+	-- imgui.Text("Dont Reset:")
+	-- imgui.SameLine(200 - imgui.GetCursorPosX())
+	-- -- apreset = helpers.InputBool("##reset", apreset)
+	-- imgui.SetWindowFontScale(1)
+	-- imgui.SameLine(250 - imgui.GetCursorPosX())
+	-- imgui.Text("Incase you lose connection")
+	-- imgui.SetWindowFontScale(2)
+	-- --]]
+
+	-- imgui.End()
 
     -- draw options
 	self.optionsList:draw()

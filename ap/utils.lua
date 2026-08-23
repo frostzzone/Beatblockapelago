@@ -25,6 +25,10 @@ function dpf.checkForBlank(s)
 end
 
 function dpf.loadJson(inputed_f, w)
+	if mod_id == "unset" then
+		return {}
+	end
+
 	local f = "savedata/Mods/" .. mod_id .. "/" .. inputed_f
 	log("loading " .. f, "ap_dpf")
 	local cf = love.filesystem.read(f)
@@ -42,6 +46,10 @@ function dpf.loadJson(inputed_f, w)
 end
 
 function dpf.loadText(inputed_f, w)
+	if mod_id == "unset" then
+		return ""
+	end
+
 	local f = "savedata/Mods/" .. mod_id .. "/" .. inputed_f
 	log("loading " .. f, "ap_dpf")
 	local cf = love.filesystem.read(f)
@@ -59,6 +67,10 @@ function dpf.loadText(inputed_f, w)
 end
 
 function dpf.saveJson(inputed_f, w, tablesort)
+	if mod_id == "unset" then
+		return
+	end
+
 	local f = "savedata/Mods/" .. mod_id .. "/" .. inputed_f
 	local newdir = helpers.rliid(f)
 	if newdir ~= "" then
@@ -98,6 +110,10 @@ function dpf.saveJson(inputed_f, w, tablesort)
 end
 
 function dpf.saveText(inputed_f, w, tablesort)
+	if mod_id == "unset" then
+		return
+	end
+
 	local f = "savedata/Mods/" .. mod_id .. "/" .. inputed_f
 	local newdir = helpers.rliid(f)
 	if newdir ~= "" then

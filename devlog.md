@@ -5,7 +5,7 @@
 
 ### THE REAL TODO (before 1st release)
 - [ ] Make a menu for yaml
-- [ ] Make AP world
+- [X] Make AP world
 - [ ] Make apclientpp actually do things
 - [ ] Text console for apclientpp
 - [ ] Way to hint at the level
@@ -50,3 +50,8 @@
 - Back to codeing
 - Started rewriting parts of the apworld because its not regestering location names or items
 
+## 2026-07-03
+- "Fixed" apworld
+
+## 2026-07-30
+- Uhhhhhhhhhh
