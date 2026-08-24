@@ -274,6 +274,8 @@ function connect(server, slot, password)
 		ap.data.team = ap.client:get_team_number()
 		ap.data.player_id = ap.client:get_player_number()
 
+		ap.data.atom_keys = json.decode(slot_data.atom_keys) or {}
+
 		local tags = { "Lua-APClientPP" }
 		print("Deathlink: " .. tostring(ap.IsDeathlinkOn()))
 		if ap.IsDeathlinkOn() then

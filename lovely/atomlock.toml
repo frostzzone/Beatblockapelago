@@ -14,6 +14,9 @@ position = "after"
 payload = '''
 
 atom.id = atomData.id or "IDMISSINGFUCK"
+
+atom.apID = (atomData.icon or "Base"):gsub('images/',"")
+
 '''
 match_indent = true
 
@@ -26,10 +29,12 @@ target = "states/AtomMap.lua"
 pattern = 'function st:selectAtom(newAtom, skipanim, speedOverride)'
 position = "after"
 payload = '''
-local atID = newAtom.id
-if ap.connected then
+local atID = newAtom.apID
+print(atID)
+if ap.connected and atID ~= "IDMISSINGFUCK"  then
+    local APIID = ap.data.atom_keys[atID]
     -- Check for Atom Key
-    if atID ~= "IDMISSINGFUCK" and not (ap.data.atom_keys[atID]) then
+    if not (ap.data.items[APIID]) then
         return
     end
 end
