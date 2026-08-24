@@ -1,0 +1,37 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# Give Atom its id (why is this not a vanilla thing ???????)
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = '''function st:buildAtom(atomData, layer)
+	layer = layer or 0
+	local atom = em.init("Atom", { atomLayer = layer })'''
+position = "after"
+payload = '''
+
+atom.id = atomData.id or "IDMISSINGFUCK"
+'''
+match_indent = true
+
+
+
+# Stop player from accessing atom
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = 'function st:selectAtom(newAtom, skipanim, speedOverride)'
+position = "after"
+payload = '''
+local atID = newAtom.id
+if ap.connected then
+    -- Check for Atom Key
+    if atID ~= "IDMISSINGFUCK" and not (ap.data.atom_keys[atID]) then
+        return
+    end
+end
+'''
+match_indent = true

@@ -129,7 +129,7 @@ end
 
 st:setUpdate(function(self, dt) -- update function, called every frame
 	if ap.client ~= nil and ap.connected then
-		self:switchState("ap-connected")
+		self:switchState("Menu")
 	end
 	if maininput:pressed("back") or mouse.altpress == -1 then
 		if ap.client ~= nil then
