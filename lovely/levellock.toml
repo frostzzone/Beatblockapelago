@@ -1,0 +1,59 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+
+
+# Stop player from accessing level
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = 'function st:selectLevel(quark)'
+position = "after"
+payload = '''
+print(quark.level.id)
+if ap.connected and atID ~= "IDMISSINGFUCK" and false then
+    local APIID = ap.data.atom_keys[atID]
+    -- Check for Atom Key
+    if not (ap.data.items[APIID]) then
+        return
+    end
+end
+'''
+match_indent = true
+
+
+
+# Stop player from accessing level
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = '''
+	if objectData.unlockConditions then
+		unlocked = UnlockManager.evalUnlocks(objectData, objectData.unlockConditions)
+	end'''
+position = "at"
+payload = '''
+if objectData.unlockConditions then
+		unlocked = UnlockManager.evalUnlocks(objectData, objectData.unlockConditions)
+        if ap.connected then
+            if objectData.type == "Level" then
+                unlocked = false
+                local metadata = dpf.loadJson("levels/" .. tostring(objectData.level) .. "/manifest.json").metadata
+                for x,y in ipairs(ap.data.playable) do
+                    unlocked = (metadata.songName == y.name)
+                    print(y.name)
+                    if unlocked then break end
+                end
+                if not unlocked then
+                    print(metadata.songName)
+                end
+            elseif objectData.type == "Atom" then
+                unlocked = true
+                objectData.unlockState = 2
+            end
+        end
+end
+'''
+match_indent = true

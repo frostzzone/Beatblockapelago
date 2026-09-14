@@ -44,7 +44,14 @@ function ap.addItem(id)
 		return
 	end
 
-	table.insert(ap.data.playable, ap.levels[ap.data.items[tostring(id)]])
+	table.insert(ap.data.received,id)
+	--ap.data.received:insert(id or "Fuck")
+
+	if id >= 1000 then
+		
+	else
+		table.insert(ap.data.playable, ap.levels[ap.data.items[tostring(id)]])
+	end
 end
 
 -- Need this to convert ap IDs to level names to level paths
@@ -60,6 +67,7 @@ function ap.get_all_levels()
 			print("Path: " .. "levels/Finished levels/" .. tostring(v) .. " | " .. metadata.metadata.songName)
 			ap.levels[metadata.metadata.songName] = {
 				name = metadata.metadata.songName,
+				id = v,
 				path = "levels/Finished levels/" .. tostring(v),
 				variants = metadata.variants,
 			}
@@ -266,6 +274,8 @@ function connect(server, slot, password)
 		--print("slot_data: " .. bbp.utils.printTable(slot_data))
 		ap.data.allowFishing = false
 		ap.data.playable = {} -- List of level items that can be played
+		ap.data.received = {} -- List of ALL recieved items
+		ap.data.atoms = {} 	  -- List of Atom Keys received
 
 		ap.data.slot = slot
 		ap.data.slot_data = slot_data

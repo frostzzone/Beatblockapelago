@@ -31,11 +31,51 @@ position = "after"
 payload = '''
 local atID = newAtom.apID
 print(atID)
-if ap.connected and atID ~= "IDMISSINGFUCK"  then
+if ap.connected and atID ~= "Base" then
     local APIID = ap.data.atom_keys[atID]
+    print(APIID)
+    ap.utils.printTable(ap.data.received)
     -- Check for Atom Key
-    if not (ap.data.items[APIID]) then
-        return
+    local yesnt = false
+    for x,y in ipairs(ap.data.received) do
+        yesnt = y == APIID
+        if yesnt then break end
+    end
+    if not yesnt then return end
+end
+'''
+match_indent = true
+
+
+
+# Change Atom Icon
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = '''		else
+			atom.icon = love.graphics.newImage(self.basePath .. "/" .. atomData.icon .. ".png")
+		end'''
+position = "at"
+payload = '''
+else
+    
+    if ap.connected then
+        local atID = atom.apID
+        local APIID = ap.data.atom_keys[atID]
+
+
+        local yesnt = false
+            for x,y in ipairs(ap.data.received) do
+                yesnt = y == APIID
+                if yesnt then break end
+            end
+        if not yesnt then atom.icon = love.graphics.newImage("assets/menu/lock.png") else
+	    atom.icon = love.graphics.newImage(self.basePath .. "/" .. atomData.icon .. ".png")
+        end
+        
+    else
+        
+	    atom.icon = love.graphics.newImage(self.basePath .. "/" .. atomData.icon .. ".png")
     end
 end
 '''
