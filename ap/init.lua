@@ -64,9 +64,16 @@ function ap.get_all_levels()
 		for k, v in pairs(ap.level) do
 			-- Get metadata
 			local metadata = dpf.loadJson("levels/Finished levels/" .. tostring(v) .. "/manifest.json")
-			print("Path: " .. "levels/Finished levels/" .. tostring(v) .. " | " .. metadata.metadata.songName)
-			ap.levels[metadata.metadata.songName] = {
-				name = metadata.metadata.songName,
+			local songName = metadata.metadata.songName
+
+			-- The stupid æ
+			if songName == "Era Chimæra" then
+				songName = "Era Chimaera"
+			end
+
+			print("Path: " .. "levels/Finished levels/" .. tostring(v) .. " | " .. songName)
+			ap.levels[songName] = {
+				name = songName,
 				id = v,
 				path = "levels/Finished levels/" .. tostring(v),
 				variants = metadata.variants,
