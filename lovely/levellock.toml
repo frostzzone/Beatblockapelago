@@ -42,8 +42,11 @@ if objectData.unlockConditions then
                 unlocked = false
                 local metadata = dpf.loadJson("levels/" .. tostring(objectData.level) .. "/manifest.json").metadata
                 for x,y in ipairs(ap.data.playable) do
-                    unlocked = (metadata.songName == y.name)
-                    print(y.name)
+                    if y.name == "Era Chimaera" then 
+                        unlocked = (metadata.songName == "Era Chimæra")
+                    else
+                        unlocked = (metadata.songName == y.name)
+                    end
                     if unlocked then break end
                 end
                 if not unlocked then
