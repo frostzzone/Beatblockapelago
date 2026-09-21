@@ -199,10 +199,10 @@ function ap.checkResults(level_path, results)
 	print(results.lGrade)
 
 	if not ap.data.slot_data.ranksanity then
-		local t = GameManager:gradeCalcEvil()
+		local t = GameManager:gradeCalcEvil(ap.data.slot_data.target_rank)
 
-		print("Only checking for " .. ap.data.slot_data.target_rank .. " rank")
-		if results.lGrade ~= ap.data.slot_data.target_rank then
+		print("Only checking for " .. t .. " or better !")
+		if results.pctGrade < t then
 			print("Not a " .. ap.data.slot_data.target_rank .. " rank")
 			return
 		end

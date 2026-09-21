@@ -19,7 +19,7 @@ target = "obj/GameManager.lua"
 pattern = 'return GameManager'
 position = "before"
 payload = '''
-function GameManager:gradeCalcEvil(pct,mod) --idk where else to put this, but it shouldn't go into helpers because its so game specific.
+function GameManager:gradeCalcEvil(pct) --idk where else to put this, but it shouldn't go into helpers because its so game specific.
 	local gradeMargins = {
 		{100.01, 'what', 'plus'},
 		{100, 'perfect'},
@@ -41,8 +41,10 @@ function GameManager:gradeCalcEvil(pct,mod) --idk where else to put this, but it
 
 	}
 
+   
+
 	for i,v in ipairs(gradeMargins) do
-		if pct == v[2] and mod == v[3] then
+		if (pct == v[2] and not v[3]) or (pct == (v[2].." "..(v[3] or "FUCK") )) then
 			return v[1]
 		end
 	end
