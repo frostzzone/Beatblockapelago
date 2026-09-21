@@ -41,6 +41,11 @@ if ap.connected and atID ~= "Base" then
         yesnt = y == APIID
         if yesnt then break end
     end
+
+    -- intro always unlocked
+    yesnt = yesnt or (atID == "square")
+
+
     if not yesnt then return end
 end
 '''
@@ -69,6 +74,8 @@ else
                 yesnt = y == APIID
                 if yesnt then break end
             end
+        yesnt = yesnt or (atID == "square")
+        
         if not yesnt then atom.icon = love.graphics.newImage("assets/menu/lock.png") else
 	    atom.icon = love.graphics.newImage(self.basePath .. "/" .. atomData.icon .. ".png")
         end

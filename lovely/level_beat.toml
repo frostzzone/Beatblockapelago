@@ -1,0 +1,58 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+[[patches]]
+[patches.pattern]
+target = "states/Results.lua"
+pattern = 'st:setInit(function(self)'
+position = "after"
+payload = '''
+print("Hey, it's me, it's verity!")
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = 'return GameManager'
+position = "before"
+payload = '''
+function GameManager:gradeCalcEvil(pct,mod) --idk where else to put this, but it shouldn't go into helpers because its so game specific.
+	local gradeMargins = {
+		{100.01, 'what', 'plus'},
+		{100, 'perfect'},
+		{98, 's','plus'},
+		{95, 's'},
+		{93, 'a','plus'},
+		{90, 'a'},
+		{87, 'b','plus'},
+		{83, 'b'},
+		{80, 'b','minus'},
+		{77, 'c','plus'},
+		{73, 'c'},
+		{70, 'c','minus'},
+		{64, 'd','plus'},
+		{56, 'd'},
+		{50, 'd','minus'},
+		{0, 'f'},
+		{-math.huge,'what'}
+
+	}
+
+	for i,v in ipairs(gradeMargins) do
+		if pct == v[2] and mod == v[3] then
+			return v[1]
+		end
+	end
+
+
+
+	return 69
+end
+'''
+match_indent = true
+
+
+

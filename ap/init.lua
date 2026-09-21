@@ -195,7 +195,12 @@ function ap.checkResults(level_path, results)
 
 	print("Checking results")
 
-	if ap.data.slot_data.ranksanity == 0 then
+	print(ap.data.slot_data.ranksanity)
+	print(results.lGrade)
+
+	if not ap.data.slot_data.ranksanity then
+		local t = GameManager:gradeCalcEvil()
+
 		print("Only checking for " .. ap.data.slot_data.target_rank .. " rank")
 		if results.lGrade ~= ap.data.slot_data.target_rank then
 			print("Not a " .. ap.data.slot_data.target_rank .. " rank")
@@ -209,6 +214,7 @@ function ap.checkResults(level_path, results)
 
 		return
 	else
+		-- like eventually add rank sanity
 	end
 	-- level_path: levels/Finished levels/destroydestroy/ | level_name: Destroy, Destroy (ft. eili) | Grade: b | + or -: plus
 	-- level_path: Workshop/3748025162/ | level_name: boss battle against that random npc | Grade: a | + or -: plus
