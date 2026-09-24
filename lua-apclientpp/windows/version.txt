@@ -1,0 +1,9 @@
+(This is so i can know what version of lua-apclientpp is here)
+
+repo: https://github.com/black-sliver/lua-apclientpp
+
+path: lua51/lua51-clang64-dynamic
+version: 0.6.5
+
+(yyyy-mm-dd)
+changed: 2026-09-22

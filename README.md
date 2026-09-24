@@ -51,15 +51,18 @@ Go to `ap-block\lua-apclientpp` and drag the `lua-apclientpp.dll` file to the ro
 ## Todo
 (kinda in order of priority)
 
-- [ ] Deathlink 
+- [ ] Deathlink (Not implemented)
   - [X] Send
-  - [ ] Receive
+  - [X] Receive
+- [X] Ranksanity
+  - [ ] Implemented in game
+- [X] Fishsanity (Not implemented clientside)
+  - [ ] Implemented in game
+- [ ] Choosing goal level's goal rank
 - [ ] Add a way to add custom/workshop levels into the randomizer
-- [ ] Allow choosing target rank
+- [X] Allow choosing target rank
 - [ ] Add marathons to the pool
 - [ ] Add costumes to the pool
 - [ ] Add level unlocks as a location (needs costumes and marathons)
 - [ ] Add traps
-- [ ] Ranksanity
-- [ ] Fishsanity
 - [ ] Lock Note types

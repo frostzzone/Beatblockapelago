@@ -200,16 +200,38 @@ function ap.checkResults(level_path, results)
 
 	local level_name = results.level.metadata.songName
 
+	if level_name == "Era Chimæra" then
+		level_name = "Era Chimaera"
+	end
+
 	print("Checking results")
 
-	print(ap.data.slot_data.ranksanity)
-	print(results.lGrade)
+	-- print(ap.data.slot_data.ranksanity)
+
+	print("Goal: " .. ap.data.goal_level .. " | Goal Rank: " .. ap.data.goal_rank)
+	print("Level: " .. level_name .. " | Level Rank: " .. results.lGrade)
+
+	-- Victory location check
+	if level_name == ap.data.goal_level then
+		print("Victory location check :3")
+		local t = GameManager:gradeCalcEvil(ap.data.slot_data.goal_rank)
+
+		if results.pctGrade <= t then
+			print("Goal not a " .. ap.data.slot_data.goal_rank .. " rank")
+			return
+		end
+
+		print("WIN YIPPE")
+		ap.toast("Victory!", "You beat the archapelago!")
+		
+		ap.client:StatusUpdate(ap.client.ClientStatus.GOAL)
+	end
 
 	if not ap.data.slot_data.ranksanity then
 		local t = GameManager:gradeCalcEvil(ap.data.slot_data.target_rank)
 
 		print("Only checking for " .. t .. " or better !")
-		if results.pctGrade < t then
+		if results.pctGrade <= t then
 			print("Not a " .. ap.data.slot_data.target_rank .. " rank")
 			return
 		end
@@ -292,8 +314,13 @@ function connect(server, slot, password)
 
 		ap.data.slot = slot
 		ap.data.slot_data = slot_data
+
+		ap.data.goal_level = slot_data.goal_level
+		ap.data.goal_rank = slot_data.goal_rank or "b minus"
+
 		ap.data.locations = json.decode(slot_data.locations)
 		ap.data.items = json.decode(slot_data.items)
+
 		ap.data.team = ap.client:get_team_number()
 		ap.data.player_id = ap.client:get_player_number()
 
@@ -312,6 +339,8 @@ function connect(server, slot, password)
 		-- print("locations: " .. type(ap.data.locations))
 		-- ap.utils.printTable(ap.data.locations, "locations", 1)
 		print("items: " .. type(ap.data.items))
+
+		print("Goal: " .. ap.data.goal_level .. " (".. ap.data.goal_rank .. ")")
 
 		ap.client:ConnectUpdate(nil, tags)
 
