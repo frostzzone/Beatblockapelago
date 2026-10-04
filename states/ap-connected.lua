@@ -23,7 +23,7 @@ function st:GetPossibleMissing()
 	for k, v in pairs(ap.client.missing_locations) do
 		local itemName = ap.data.id_to_location[tostring(v)]
 
-		print(itemName)
+		-- print(itemName)
 
 		-- Catch ${fish}
 		if itemName:match("Catch") then
@@ -35,7 +35,6 @@ function st:GetPossibleMissing()
 		-- ${level} Get ${rank} Rank
 		elseif itemName:match("Get") then
 			local levelName = itemName:match("(.+) Get (.+) Rank")
-			-- print(levelName)
 
 			-- erachimaera is a special case
 			if levelName == "Era Chimaera" then
@@ -54,7 +53,7 @@ function st:GetPossibleMissing()
 				-- Check if atom is unlocked
 				local APID = ap.data.atom_keys[level.atom]
 				for x,y in ipairs(ap.data.received) do
-					if y == APID then
+					if y == APID or level.name == "Tutorial" then
 						table.insert(self.possible_missing_locations, itemName)
 						break
 					end
@@ -230,6 +229,8 @@ st:setFgDraw(function(self)
 
 	imgui.Text("Received")
 	imgui.Separator()
+
+	imgui.Text("Tutorial") -- Default
 
 	if ap.data.received then
 		for k, v in pairs(ap.data.received) do

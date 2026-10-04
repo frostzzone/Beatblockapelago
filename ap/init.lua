@@ -408,6 +408,10 @@ function connect(server, slot, password)
 		--print("slot_data: " .. bbp.utils.printTable(slot_data))
 		ap.data.allowFishing = false
 		ap.data.playable = {} -- List of level items that can be played
+
+		-- Add tutorial to playable
+		table.insert(ap.data.playable, ap.levels["Tutorial"])
+
 		ap.data.received = {} -- List of ALL recieved items
 
 		ap.data.has_goal = false
