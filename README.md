@@ -23,16 +23,14 @@ The goal is to beat the set level at the chosen rank
 
 ## Installation
 
-Download the mod from the releases page (TODO) <!--[releases page](https://github.com/frostzzone/Beatblockapelago/releases/latest)-->
+Download the mod from the [releases page](https://github.com/frostzzone/Beatblockapelago/releases/latest)
 
 You will need [beatblockplus](https://github.com/BeatblockTools/BeatblockPlus/releases/latest) follow their [install guide](https://beatblocktools.github.io/docs/installation/installing-lovely-and-bbp).
 
 
 ### Beatblockapelago
 
-Download the mod from the releases (TODO) <!--[releases page](https://github.com/frostzzone/Beatblockapelago/releases/latest)-->
-
-Then drag it into the mod menu ingame.
+Take the mod zip and drag it into the mod menu ingame.
 
 <img src="https://beatblocktools.github.io/assets/images/drag-and-drop-9dcaae500f076a205fc90bf9b5c3d6a5.gif">
 
@@ -55,14 +53,13 @@ My code is awful so the randomization isnt the best
 ## Todo
 (kinda in order of priority)
 
-- [ ] Deathlink
+- [X] Ranksanity
+- [X] Fishsanity
+- [X] Choosing goal level's goal rank
+- - [ ] Deathlink
   - [ ] Send
   - [ ] Receive
   - [ ] Fully Implemented in game
-- [X] Ranksanity
-  - [ ] Implemented in game
-- [X] Fishsanity
-- [ ] Choosing goal level's goal rank
 - [ ] Add a way to add custom/workshop levels into the randomizer
 - [X] Allow choosing target rank
 - [ ] Add marathons to the pool
