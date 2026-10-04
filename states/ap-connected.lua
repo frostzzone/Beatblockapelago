@@ -17,7 +17,81 @@ end
 
 -- [[ State functions ]]
 
+function st:GetPossibleMissing()
+	-- Get possible locations from missing locations
+	self.possible_missing_locations = {}
+	for k, v in pairs(ap.client.missing_locations) do
+		local itemName = ap.data.id_to_location[tostring(v)]
+
+		print(itemName)
+
+		-- Catch ${fish}
+		if itemName:match("Catch") then
+			if not ap.data.allowFishing then
+				break
+			end
+			-- table.insert(self.possible_missing_locations, itemName)
+		
+		-- ${level} Get ${rank} Rank
+		elseif itemName:match("Get") then
+			local levelName = itemName:match("(.+) Get (.+) Rank")
+			-- print(levelName)
+
+			-- erachimaera is a special case
+			if levelName == "Era Chimaera" then
+				levelName = "Era Chimæra"
+			end
+
+			local level = nil
+			for k, v in pairs(ap.data.playable) do
+				if v.name == levelName then
+					level = v
+					break
+				end
+			end
+
+			if level then
+				-- Check if atom is unlocked
+				local APID = ap.data.atom_keys[level.atom]
+				for x,y in ipairs(ap.data.received) do
+					if y == APID then
+						table.insert(self.possible_missing_locations, itemName)
+						break
+					end
+				end
+			end
+		end
+	end
+
+	-- Check if goal can be achieved
+	local goallevel = ap.data.goal_level
+	local goal = "GOAL: " .. goallevel .. " Get " .. ap.data.goal_rank .. " Rank"
+
+	if goallevel == "Era Chimaera" then
+		goallevel = "Era Chimæra"
+	end
+	
+	if not ap.data.has_goal then
+		for k, v in pairs(ap.data.playable) do
+			if v.name == goallevel then
+				local APID = ap.data.atom_keys[v.atom]
+				for x,y in ipairs(ap.data.received) do
+					if y == APID then
+						table.insert(self.possible_missing_locations, goal)
+						break
+					end
+				end
+				break
+			end
+		end
+	else
+		table.insert(self.possible_missing_locations, "You Beat the Archapelago!")
+	end
+end
+
 st:setInit(function(self)
+	st:GetPossibleMissing(self)
+
 	ap.gui.pushStyle()
 
 	love.mouse.setVisible(true)
@@ -35,7 +109,12 @@ st:setInit(function(self)
 	-- 	self:switchState("ap-console")
 	-- end, optionsHeight*4)
 
-	self.optionsList:addOption("Leave", function()
+	self.optionsList:addOption("Leave AP", function()
+		ap.leave()
+		self:switchState("AP")
+	end, optionsHeight*5)
+
+	self.optionsList:addOption("Back", function()
 		self.optionsList:callReturn()
 	end, 140)
 
@@ -43,8 +122,7 @@ st:setInit(function(self)
 
 	-- it breaks if its not wrapped in a function
 	self.optionsList.returnLoc["main"] = function()
-		ap.leave()
-		self:switchState("AP")
+		self:switchState("Menu")
 	end
 
 	self.optionsList.x = project.res.cx
@@ -118,19 +196,6 @@ st:setBgDraw(function(self)
 	})
 end)
 
--- TODO: Actually be able to play levels
-function renderLevel(self, levelPath)
-	-- Uhhh,, difficulty selection and play button
-
-	-- Variants
-	local variants = ap.data.playable[self.selectedLevel].variants
-	for i, v in pairs(variants) do
-		local variantName = v.name
-		local variantPath = v.path
-	end
-	
-end
-
 st:setFgDraw(function(self)
 	love.graphics.setFont(fonts.digitalDisco)
 	color("black")
@@ -143,56 +208,52 @@ st:setFgDraw(function(self)
 
 	local padding = 60
 
+	local actualWidth = windowWidth - padding * 4
+	local actualHeight = windowHeight - padding * 4
+
 	helpers.SetNextWindowPos(padding * 2, padding)
-	helpers.SetNextWindowSize(windowWidth - padding * 4, windowHeight - padding * 2)
+	helpers.SetNextWindowSize(actualWidth, actualHeight)
 
 	imgui.Begin("Ap Menu", true, 295)
 
 	imgui.SetWindowFontScale(2)
 
-	imgui.SetCursorPosX(400)
-	imgui.Text("Ap Menu")
-	imgui.Separator()
+	-- imgui.SetCursorPosX(400)
+	-- imgui.Text("Ap Menu")
+	-- imgui.Separator()
 
 	imgui.Columns(2, "main", true)
-	imgui.SetColumnWidth(imgui.GetColumnIndex(), windowWidth * 0.6)
+	imgui.SetColumnWidth(imgui.GetColumnIndex(), actualWidth/2)
 
-	-- start level List
-	imgui.BeginChild_Str("level_list", imgui.ImVec2_Float(550 / 600 * windowWidth, windowHeight - 90), 0)
+	-- start received list
+	imgui.BeginChild_Str("received_list", imgui.ImVec2_Float(550 / 600 * actualWidth, actualHeight-20), 0)
 
-	-- {"level name": { path: "levels/Finished levels/DARKSHIP/DARKSHIP.json", variants: {...} }}
-	if ap.data.playable then
-		for k, v in pairs(ap.data.playable) do
-			local levelName = v.name
-			local levelPath = v.path
+	imgui.Text("Received")
+	imgui.Separator()
 
-			local childWidth = windowWidth * 0.59
-			local childHeight = 42
-			imgui.BeginChild_Str(levelPath, imgui.ImVec2_Float(childWidth, childHeight), 1)
-			imgui.SetWindowFontScale(2)
-			imgui.Text(levelName)
-
-			-- show when clicked
-			if imgui.IsWindowHovered() and imgui.IsMouseClicked(0) then -- left click
-				self.selectedLevel = levelPath
-			end
-
-			imgui.EndChild() -- end level
+	if ap.data.received then
+		for k, v in pairs(ap.data.received) do
+			local itemName = ap.data.items[tostring(v)]
+			imgui.Text(itemName)
 		end
-	else
-		imgui.Text("No levels received")
 	end
-	imgui.EndChild() -- end level list
+
+	imgui.EndChild()
 
 	imgui.NextColumn()
-	imgui.SetColumnWidth(imgui.GetColumnIndex(), windowWidth * 0.39)
+	imgui.SetColumnWidth(imgui.GetColumnIndex(), actualWidth / 2)
 
-	if ap.data.playable and self.selectedLevel then
-		imgui.BeginChild_Str("level_select" .. self.selectedLevel, imgui.ImVec2_Float(0, 0), false)
-		renderLevel(self, self.selectedLevel)
-		imgui.Text("Level: " .. self.selectedLevel)
-		imgui.EndChild()
+	-- start missing list
+	imgui.BeginChild_Str("missing_list", imgui.ImVec2_Float(550 / 600 * actualWidth, actualHeight-20), 0)
+
+	imgui.Text("Missing")
+	imgui.Separator()
+
+	if self.possible_missing_locations then
+		for k, v in pairs(self.possible_missing_locations) do imgui.Text(v) end
 	end
+
+	imgui.EndChild()
 
 	imgui.End()
 

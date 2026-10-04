@@ -1,0 +1,63 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# Stop player from accessing levels that are not unlocked
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''if love.filesystem.getInfo(path .. "manifest.json") then
+				local levelMetadata = LevelManager:loadMetadata(path)
+				self:newLevel(levelMetadata, path)
+				orderedTable[path] = i'''
+position = "at"
+payload = '''
+if love.filesystem.getInfo(path .. "manifest.json") then
+    local levelMetadata = LevelManager:loadMetadata(path)
+    if ap.connected and not ap.data.has_goal then
+        for x,y in ipairs(ap.data.playable) do
+            local AtomUnlocked = false
+            local LvlUnlocked = false
+
+            -- Check if atom is unlocked
+            local APID = ap.data.atom_keys[y.atom]
+            for x,y in ipairs(ap.data.received) do
+                AtomUnlocked = y == APID
+                if AtomUnlocked then break end
+            end
+
+            -- Check if level is unlocked
+            unlocked = (levelMetadata.metadata.songName == y.name)
+
+            -- if y.name == levelMetadata.metadata.songName then
+            --     print("Level: " .. y.name .. " | Internal Name: " .. levelMetadata.metadata.songName .. " | Atom Unlocked: " .. tostring(AtomUnlocked))
+            -- end
+
+            if (unlocked and AtomUnlocked) or levelMetadata.metadata.songName == "Tutorial" then
+                self:newLevel(levelMetadata, path)
+                orderedTable[path] = i
+                break
+            end
+        end
+    else
+        self:newLevel(levelMetadata, path)
+        orderedTable[path] = i
+    end
+'''
+match_indent = true
+
+# Lock fishing (until the funny fishing stuff is added)
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''if not (filename == 'levels/Other/fishing/' and (not UnlockManager.isLevelPassed({'''
+position = "at"
+payload = '''
+local allowFishing = true
+if ap.connected and not ap.data.has_goal then
+    allowFishing = ap.data.allowFishing
+end
+
+if allowFishing and not (filename == 'levels/Other/fishing/' and (not UnlockManager.isLevelPassed({'''
+match_indent = true

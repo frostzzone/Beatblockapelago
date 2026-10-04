@@ -43,13 +43,25 @@ end'''
 match_indent = true
 
 # FISH 
+[[patches]]
+[patches.pattern]
+target = "states/Fishing.lua"
+pattern = "if new or not savedata.fishing.hasBook then" # ExtraStuff mod chnages [function st:startShowCatch(fish,new)]
+position = "before"
+payload = '''
+if ap.client ~= nil then
+	ap.checkFish(fish)
+end
+'''
+match_indent = true
+
+# temp inf stamina
 # [[patches]]
 # [patches.pattern]
-# target = "main.lua"
-# pattern = "function st:startShowCatch(fish,new)"
-# position = "after"
-# payload = '''ap.gotFish(fish, )
-# print("AP savedata loaded")'''
+# target = "states/Fishing.lua"
+# pattern = "savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1"
+# position = "at"
+# payload = '''-- savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1'''
 # match_indent = true
 
 # Send Results
@@ -74,7 +86,11 @@ pattern = "self.mainMenu:addOption('credits',function()"
 position = "before"
 payload = '''
 self.mainMenu:addOption('Archipelago', function()
-	cs = bs.load('AP')
+	if not ap.connected then
+		cs = bs.load('AP')
+	else 
+		cs = bs.load('ap-connected')
+	end
 	cs.bg = self.bg
 	self.menuMusicManager:clearOnBeatHooks()
 	self:leave()

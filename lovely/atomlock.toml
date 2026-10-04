@@ -13,14 +13,12 @@ pattern = '''function st:buildAtom(atomData, layer)
 position = "after"
 payload = '''
 
-atom.id = atomData.id or "IDMISSINGFUCK"
+    atom.id = atomData.id or "IDMISSINGFUCK"
 
-atom.apID = (atomData.icon or "Base"):gsub('images/',"")
+    atom.apID = (atomData.icon or "Base"):gsub('images/',"")
 
 '''
 match_indent = true
-
-
 
 # Stop player from accessing atom
 [[patches]]
@@ -30,11 +28,11 @@ pattern = 'function st:selectAtom(newAtom, skipanim, speedOverride)'
 position = "after"
 payload = '''
 local atID = newAtom.apID
-print(atID)
-if ap.connected and atID ~= "Base" then
+-- print(atID)
+if ap.connected and atID ~= "Base" and not ap.data.has_goal then
     local APIID = ap.data.atom_keys[atID]
-    print(APIID)
-    ap.utils.printTable(ap.data.received)
+    -- print(APIID)
+    -- bbp.utils.printTable(ap.data.received)
     -- Check for Atom Key
     local yesnt = false
     for x,y in ipairs(ap.data.received) do
@@ -64,7 +62,7 @@ position = "at"
 payload = '''
 else
     
-    if ap.connected then
+    if ap.connected and not ap.data.has_goal then
         local atID = atom.apID
         local APIID = ap.data.atom_keys[atID]
 

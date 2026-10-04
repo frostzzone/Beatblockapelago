@@ -1,6 +1,6 @@
 local st = Gamestate:new(MyCustomState)
 
--- TODO: Make this
+-- TODO: Unused...
 
 local config = {
     
@@ -124,28 +124,6 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 
 	-- Blank line
 	imgui.Text("")
-
-	imgui.Text("Ip:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apip = helpers.InputText("##ip", apip)
-
-	imgui.Text("Slot:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apslot = helpers.InputText("##slot", apslot)
-
-	imgui.Text("Password:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- appassword = helpers.InputText("##password", appassword)
-
-	---[[
-	imgui.Text("Dont Reset:")
-	imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- apreset = helpers.InputBool("##reset", apreset)
-	imgui.SetWindowFontScale(1)
-	imgui.SameLine(250 - imgui.GetCursorPosX())
-	imgui.Text("Incase you lose connection")
-	imgui.SetWindowFontScale(2)
-	--]]
 
 	imgui.End()
 

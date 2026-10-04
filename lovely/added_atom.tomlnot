@@ -1,0 +1,59 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# Actually, scrap the way im doing this right now
+# Crashes the game when you complete a level
+
+# (just the tangent because loading the actual minigame breaks it)
+# also no new images... too much work
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = '	local mapData = dpf.loadJson(filepath)'
+position = "after"
+payload = '''
+local addedaAtom = {
+    type = "Atom",
+    title = "Added",
+    id = "added",
+    icon = "images/collab",
+    unlockConditions = {
+        {
+            type = "LevelPass",
+            level = "Finished levels/Rhythmic Shield",
+        },
+    
+    },
+    rings = {
+        {
+            speed = -1,
+            objects = {
+                {
+                    type = "Level",
+                    level = "Other/fishing",
+                    unlockConditions = {
+                        {
+                            type = "LevelPass",
+                            level = "Finished levels/Rhythmic Shield",
+                        }
+                    },
+                    variantUnlocks = {
+                        Ocean = {
+                            {
+                                type = "LevelPass",
+                                level = "Finished levels/Tutorial",
+                                variant = "---",
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+table.insert(mapData.root.rings[2].objects, addedaAtom)
+'''
+match_indent = true

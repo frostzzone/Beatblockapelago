@@ -6,7 +6,7 @@ local save = ap.utils.dpf.loadJson("save.json", { apslot = "" })
 
 ap.get_all_levels()
 
-local apip = save.apip or "archipelago.gg"
+local apip = save.apip or "archipelago.gg:"
 local apslot = save.apslot or ""
 local appassword = ""
 local apreset = false
@@ -48,13 +48,13 @@ st:setInit(function(self)
 		
 		self:saveData()
 		ap.join(apip, apslot, appassword)
-	end, optionsHeight * 0)
+	end, optionsHeight * 1)
 
 	self.optionsList:addOption("leave", function()
 		if ap.client ~= nil then
 			ap.leave()
 		end
-	end, optionsHeight * 1)
+	end, optionsHeight * 2)
 	-- TODO: Add yaml creation ingame
 	--[[
 	self.optionsList:addOption("Create Yaml", function()
@@ -62,20 +62,21 @@ st:setInit(function(self)
 	end, optionsHeight * 1)
 	]]
 
-	self.optionsList:addOption("Settings", "settings", optionsHeight * 3)
-	self.optionsList:defineSubmenu("settings")
-	self.optionsList:addText("--- Settings ---", optionsHeight * 0)
-	local testVar = { vsync = false }
-	self.optionsList:addBoolean(
-		{ "optionsVSync", "optionsEnabled", "optionsDisabled" },
-		testVar,
-		"vsync",
-		optionsHeight * 2,
-		function()
-			print(testVar.vsync)
-		end
-	)
-	self.optionsList:addOption("back", "main", optionsHeight * 7)
+	-- Options for if/when they are needed
+	-- self.optionsList:addOption("Settings", "settings", optionsHeight * 3)
+	-- self.optionsList:defineSubmenu("settings")
+	-- self.optionsList:addText("--- Settings ---", optionsHeight * 0)
+	-- local testVar = { vsync = false }
+	-- self.optionsList:addBoolean(
+	-- 	{ "optionsVSync", "optionsEnabled", "optionsDisabled" },
+	-- 	testVar,
+	-- 	"vsync",
+	-- 	optionsHeight * 2,
+	-- 	function()
+	-- 		print(testVar.vsync)
+	-- 	end
+	-- )
+	-- self.optionsList:addOption("back", "main", optionsHeight * 7)
 
 	self.optionsList:defineSubmenu()
 	self.optionsList:addOption("back", function()
@@ -214,8 +215,13 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 	imgui.SameLine(200 - imgui.GetCursorPosX())
 	appassword = helpers.InputText("##password", appassword)
 
-	imgui.Text("Connecting: " .. tostring(ap.client ~= nill))
-	imgui.Text("Connected: " .. tostring(ap.connected))
+	if ap.client ~= nil then
+		imgui.Text("Connecting...")
+	end
+
+	-- imgui.Text("Connecting: " .. tostring(ap.client ~= nil))
+	-- imgui.Text("Connected: " .. tostring(ap.connected))
+	
 	--[[ 
 	imgui.Text("Dont Reset:")
 	imgui.SameLine(200 - imgui.GetCursorPosX())

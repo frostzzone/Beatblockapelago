@@ -1,10 +1,6 @@
 local st = Gamestate:new(MyCustomState)
 
--- TODO: Make this
-
-local config = {
-    
-}
+-- TODO: Unused
 
 -- Sorry it felt weird without them but they're stupid
 function st:backroundInit()
@@ -117,9 +113,6 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 	love.graphics.setFont(fonts.digitalDisco)
 	color("black")
 
-	-- local watermarkText = "Im stupid"
-	-- love.graphics.print(watermarkText, project.res.cx * 2 - fonts.digitalDisco:getWidth(watermarkText) - 10, 6)
-
 	-- local windowWidth = imgui.canvasScale and (project.res.x * imgui.canvasScale) or love.graphics.getWidth()
 	-- local windowHeight = imgui.canvasScale and (project.res.y * imgui.canvasScale) or love.graphics.getHeight()
 
@@ -130,36 +123,7 @@ st:setFgDraw(function(self) -- foreground draw function, called every frame
 
 	-- imgui.Begin("Ap Yaml", true, 295)
 
-	-- imgui.SetWindowFontScale(2)
 
-	-- imgui.SetCursorPosX(400)
-	-- imgui.Text("Ap Yaml")
-	-- imgui.Separator()
-
-	-- -- Blank line
-	-- imgui.Text("")
-
-	-- imgui.Text("Ip:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apip = helpers.InputText("##ip", apip)
-
-	-- imgui.Text("Slot:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apslot = helpers.InputText("##slot", apslot)
-
-	-- imgui.Text("Password:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- appassword = helpers.InputText("##password", appassword)
-
-	-- ---[[
-	-- imgui.Text("Dont Reset:")
-	-- imgui.SameLine(200 - imgui.GetCursorPosX())
-	-- -- apreset = helpers.InputBool("##reset", apreset)
-	-- imgui.SetWindowFontScale(1)
-	-- imgui.SameLine(250 - imgui.GetCursorPosX())
-	-- imgui.Text("Incase you lose connection")
-	-- imgui.SetWindowFontScale(2)
-	-- --]]
 
 	-- imgui.End()
 

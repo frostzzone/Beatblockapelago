@@ -22,7 +22,7 @@ function ap.toast(title, msg)
 		end
 	end
 
-	print("AP TOAST: " .. title .. " | " .. m)
+	-- print("AP TOAST: " .. title .. " | " .. m)
 
 	UnlockManager.queueToast({
 		title = title,
@@ -34,7 +34,14 @@ end
 --   10 is filler
 --   11 is fishing rod
 function ap.addItem(id)
-	print("Adding item " .. ap.data.items[tostring(id)])
+	local itemName = ap.data.items[tostring(id)]
+
+	-- The stupid æ
+	if itemName == "Era Chimaera" then
+		itemName = "Era Chimæra"
+	end
+
+	-- print("Received: " .. itemName)
 	if id == 10 then
 		return
 	end
@@ -50,12 +57,18 @@ function ap.addItem(id)
 	if id >= 1000 then
 		
 	else
-		table.insert(ap.data.playable, ap.levels[ap.data.items[tostring(id)]])
+		-- if ap.levels[itemName] then
+		-- 	print("Adding level to playable: " .. itemName)
+		-- else
+		-- 	print("Adding unknown: ".. itemName)
+		-- end
+
+		table.insert(ap.data.playable, ap.levels[itemName])
 	end
 end
 
 -- Need this to convert ap IDs to level names to level paths
-function ap.get_all_levels()
+function ap.get_all_levels_OLD()
 	if not got_all_levels then
 		print("Getting all levels")
 		-- love.filesystem.getDirectoryItems('levels/')
@@ -105,17 +118,58 @@ function ap.get_all_levels()
 	end
 end
 
--- Dev stuff
+function set_level_data(atomID, levelPath)
+	local path = levelPath .. '/'
+	local levelMetadata = LevelManager:loadMetadata(path)
+	local songName = levelMetadata.metadata.songName
 
-local dev = {}
+	-- print("AtomID: " .. atomID .. " | Path: " .. path .. " | Level: " .. songName)
 
-function dev.send(msg)
-	print("sending: " .. msg)
-	ap.client:LocationChecks({ 140 })
+	ap.levels[songName] = {
+		atom = atomID,
+		name = songName,
+		id = levelPath,
+		path = "levels/" .. levelPath,
+		variants = levelMetadata.variants,
+	}
 end
 
-function dev.receive(msg)
-	print("received: " .. msg)
+function get_atom_data(atomData)
+	local atomID = (atomData.icon or "Base"):gsub('images/',"")
+
+	if atomData.nucleus then
+		set_level_data(atomID, "levels/" .. atomData.nucleus.level)
+	end
+	if atomData.rings then
+		for i, ring in ipairs(atomData.rings) do
+			for j, level in ipairs(ring.objects) do
+				if level.type == "Level" then
+					set_level_data(atomID, "levels/" .. level.level)
+				end
+			end
+		end
+	end
+end
+
+-- Levels from AtomMap.json
+function ap.get_all_levels()
+	if not got_all_levels_atom then
+		print("Getting all levels")
+		local atomMap = dpf.loadJson("levels/AtomMap.json")
+		atomMap = atomMap.root
+
+		-- root AKA Intro atom
+		get_atom_data(atomMap.nucleus)
+
+		for i, ring in ipairs(atomMap.rings) do
+			for j, atom in ipairs(ring.objects) do
+				get_atom_data(atom)
+			end
+		end
+		
+	else
+		print("Already got all levels")
+	end
 end
 
 --[[
@@ -140,8 +194,26 @@ end
 ]]
 
 -- Send
-function ap.send(msg)
-	dev.send(msg)
+function ap.send(item)
+	if ap.client == nil then
+		print("AP client is not connected")
+		return
+	end
+
+	local id = ap.data.locations[item]
+
+	if id == nil then
+		print("Item not found: " .. item)
+		return
+	end
+
+	if not ap.client.checked_locations[id] == nil then
+		print("Already checked: " .. item)
+		return
+	end
+
+	print("Sending check for: " .. item)
+	ap.client:LocationChecks({ id })
 end
 
 function ap.join(host, slot, password)
@@ -190,7 +262,7 @@ function ap.sendDeathLink(cause, source)
 	}, {}, {}, { "DeathLink" })
 end
 
--- TODO: Actually check results
+-- TODO: Finish check results
 -- Check results
 function ap.checkResults(level_path, results)
 	if ap.client == nil then
@@ -211,10 +283,16 @@ function ap.checkResults(level_path, results)
 	print("Goal: " .. ap.data.goal_level .. " | Goal Rank: " .. ap.data.goal_rank)
 	print("Level: " .. level_name .. " | Level Rank: " .. results.lGrade)
 
+	goal_rank = ap.data.slot_data.goal_rank	
+	if goal_rank == "p" then goal_rank = "perfect" end
+
+	target_rank = ap.data.slot_data.target_rank
+	if target_rank == "p" then target_rank = "perfect" end
+
 	-- Victory location check
 	if level_name == ap.data.goal_level then
 		print("Victory location check :3")
-		local t = GameManager:gradeCalcEvil(ap.data.slot_data.goal_rank)
+		local t = GameManager:gradeCalcEvil(goal_rank)
 
 		if results.pctGrade <= t then
 			print("Goal not a " .. ap.data.slot_data.goal_rank .. " rank")
@@ -225,10 +303,11 @@ function ap.checkResults(level_path, results)
 		ap.toast("Victory!", "You beat the archapelago!")
 		
 		ap.client:StatusUpdate(ap.client.ClientStatus.GOAL)
+		ap.client:Set("goal", true, true, {{"replace", true}})
 	end
 
 	if not ap.data.slot_data.ranksanity then
-		local t = GameManager:gradeCalcEvil(ap.data.slot_data.target_rank)
+		local t = GameManager:gradeCalcEvil(target_rank)
 
 		print("Only checking for " .. t .. " or better !")
 		if results.pctGrade <= t then
@@ -236,27 +315,47 @@ function ap.checkResults(level_path, results)
 			return
 		end
 
-		local locationId = ap.data.locations[level_name .. " Get " .. results.lGrade .. " Rank"]
+		ap.send(level_name .. " Get " .. ap.data.slot_data.target_rank .. " Rank")
 
-		-- Get ap location of the level
-		ap.client:LocationChecks({ locationId })
+		-- local locationId = ap.data.locations[level_name .. " Get " .. results.lGrade .. " Rank"]
+
+		-- -- Get ap location of the level
+		-- ap.client:LocationChecks({ locationId })
 
 		return
 	else
 		-- like eventually add rank sanity
+
+		-- Stupid result fix
+		local elgrade = results.lGrade
+		if elgrade == "perfect" then elgrade = "p" end
+		if elgrade == "almost" then elgrade = "s plus" end
+		
+		ap.send(level_name .. " Get " .. elgrade .. " Rank")
 	end
 	-- level_path: levels/Finished levels/destroydestroy/ | level_name: Destroy, Destroy (ft. eili) | Grade: b | + or -: plus
 	-- level_path: Workshop/3748025162/ | level_name: boss battle against that random npc | Grade: a | + or -: plus
-	print(
-		"level_path: "
-			.. level_path
-			.. " | level_name: "
-			.. level_name
-			.. " | Grade: "
-			.. results.lGrade
-			.. " | + or -: "
-			.. results.lGradePM
-	)
+
+	-- print(
+	-- 	"level_path: "
+	-- 		.. level_path
+	-- 		.. " | level_name: "
+	-- 		.. level_name
+	-- 		.. " | Grade: "
+	-- 		.. results.lGrade
+	-- 		.. " | + or -: "
+	-- 		.. results.lGradePM
+	-- )
+end
+
+function ap.checkFish(fish) 
+	if ap.client == nil then
+		print("Hit fallback fish check return :C")
+		return
+	end
+
+	ap.send("Catch " .. fish)
+	
 end
 
 -- AP client
@@ -310,7 +409,8 @@ function connect(server, slot, password)
 		ap.data.allowFishing = false
 		ap.data.playable = {} -- List of level items that can be played
 		ap.data.received = {} -- List of ALL recieved items
-		ap.data.atoms = {} 	  -- List of Atom Keys received
+
+		ap.data.has_goal = false
 
 		ap.data.slot = slot
 		ap.data.slot_data = slot_data
@@ -332,13 +432,21 @@ function connect(server, slot, password)
 			tags[#tags + 1] = "DeathLink"
 		end
 
-		print("Target rank: " .. tostring(ap.data.slot_data.target_rank))
-		print("Ranksanity: " .. tostring(ap.data.slot_data.ranksanity))
-		print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
+		ap.data.id_to_location = {}
+		for k, v in pairs(ap.data.locations) do
+			ap.data.id_to_location[tostring(v)] = k
+		end
+
+		-- print("Target rank: " .. tostring(ap.data.slot_data.target_rank))
+		-- print("Ranksanity: " .. tostring(ap.data.slot_data.ranksanity))
+		-- print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
+		if ap.data.slot_data.fishsanity then
+			print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
+		end
 
 		-- print("locations: " .. type(ap.data.locations))
-		-- ap.utils.printTable(ap.data.locations, "locations", 1)
-		print("items: " .. type(ap.data.items))
+		-- bbp.utils.printTable(ap.data.locations, "locations", 1)
+		-- print("items: " .. type(ap.data.items))
 
 		print("Goal: " .. ap.data.goal_level .. " (".. ap.data.goal_rank .. ")")
 
@@ -348,6 +456,8 @@ function connect(server, slot, password)
 		-- assert(ap.client:get_item_name(64055, nil) == ap.client:get_item_name(64055, ap.client:get_game()))
 		-- assert(not pcall(function() ap.client:get_location_name(64000) end)) -- not valid anymore, need 2nd arg
 		-- assert(ap.client:get_location_name(64000, nil) == ap.client:get_location_name(64000, ap.client:get_game()))
+
+		ap.client:Get({"goal"}, nil)
 
 		-- print("Slot connected")
 		-- print(slot_data)
@@ -380,11 +490,11 @@ function connect(server, slot, password)
 		-- { item, location }
 		local item_list = {}
 		for _, item in ipairs(items) do
-			ap.utils.printTable(item, "item", 1)
+			-- bbp.utils.printTable(item, "item", 1)
 
 			ap.addItem(item.item)
 			table.insert(item_list, ap.data.items[tostring(item.item)])
-			print(item.item .. " | Level: " .. ap.data.items[tostring(item.item)])
+			-- print(item.item .. " | Name: " .. ap.data.items[tostring(item.item)])
 		end
 		ap.toast("Items Received", item_list)
 	end
@@ -398,7 +508,7 @@ function connect(server, slot, password)
 
 	function on_location_checked(locations)
 		print("Locations checked:" .. table.concat(locations, ", "))
-		print("Checked locations: " .. table.concat(ap.client.checked_locations, ", "))
+		-- print("Checked locations: " .. table.concat(ap.client.checked_locations, ", "))
 	end
 
 	function on_data_package_changed(data_package)
@@ -427,6 +537,16 @@ function connect(server, slot, password)
 		print("Retrieved:")
 		-- since lua tables won't contain nil values, we can use keys array
 		for _, key in ipairs(keys) do
+			if key == "goal" then
+				if tostring(map[key]) == "true" then
+					ap.data.has_goal = true
+				else
+					if not tostring(map[key]) == "false" then
+						ap.client:Set("goal", false, true, {{"replace", false}})
+					end
+					ap.data.has_goal = false
+				end
+			end
 			print("  " .. key .. ": " .. tostring(map[key]))
 		end
 		-- extra will include extra fields from Get
