@@ -36,9 +36,13 @@ end
 function ap.addItem(id)
 	local itemName = ap.data.items[tostring(id)]
 
-	-- The stupid æ
+	-- The stupid edge cases
 	if itemName == "Era Chimaera" then
 		itemName = "Era Chimæra"
+	elseif itemName == "publico cautivo" then
+		itemName = "público cautivo"
+	elseif itemName == "C-me B-me" then
+		itemName = "C-ミ B-ミ"
 	end
 
 	-- print("Received: " .. itemName)
