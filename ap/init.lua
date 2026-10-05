@@ -30,6 +30,30 @@ function ap.toast(title, msg)
 	})
 end
 
+-- I AHTETETHETRHJYWHJYUKR
+local edgeCases = {
+	["Era Chimaera"] = "Era Chimæra",
+	["publico cautivo"] = "público cautivo",
+	["C-me B-me"] = "C-ミ B-ミ",
+}
+
+local reverseEdgeCases = {}
+for k, v in pairs(edgeCases) do
+	reverseEdgeCases[v] = k
+end
+
+-- (place to add edge cases)
+function ap.nameFormat(text, reverse)
+	if reverse == nil then reverse = false end
+
+	if reverse then
+		return reverseEdgeCases[text] or text
+	else
+		return edgeCases[text] or text
+	end
+
+end
+
 -- Notes:
 --   10 is filler
 --   11 is fishing rod
@@ -37,13 +61,7 @@ function ap.addItem(id)
 	local itemName = ap.data.items[tostring(id)]
 
 	-- The stupid edge cases
-	if itemName == "Era Chimaera" then
-		itemName = "Era Chimæra"
-	elseif itemName == "publico cautivo" then
-		itemName = "público cautivo"
-	elseif itemName == "C-me B-me" then
-		itemName = "C-ミ B-ミ"
-	end
+	itemName = ap.nameFormat(itemName)
 
 	-- print("Received: " .. itemName)
 	if id == 10 then
@@ -276,9 +294,7 @@ function ap.checkResults(level_path, results)
 
 	local level_name = results.level.metadata.songName
 
-	if level_name == "Era Chimæra" then
-		level_name = "Era Chimaera"
-	end
+	level_name = ap.nameFormat(level_name, true)
 
 	print("Checking results")
 

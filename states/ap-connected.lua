@@ -36,10 +36,8 @@ function st:GetPossibleMissing()
 		elseif itemName:match("Get") then
 			local levelName = itemName:match("(.+) Get (.+) Rank")
 
-			-- erachimaera is a special case
-			if levelName == "Era Chimaera" then
-				levelName = "Era Chimæra"
-			end
+			-- The stupid edge cases
+			levelName = ap.nameFormat(levelName)
 
 			local level = nil
 			for k, v in pairs(ap.data.playable) do
@@ -66,9 +64,8 @@ function st:GetPossibleMissing()
 	local goallevel = ap.data.goal_level
 	local goal = "GOAL: " .. goallevel .. " Get " .. ap.data.goal_rank .. " Rank"
 
-	if goallevel == "Era Chimaera" then
-		goallevel = "Era Chimæra"
-	end
+	-- The stupid edge cases that i hate
+	goallevel = ap.nameFormat(goallevel)
 	
 	if not ap.data.has_goal then
 		for k, v in pairs(ap.data.playable) do
