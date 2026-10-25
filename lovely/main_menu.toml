@@ -1,0 +1,62 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# Add AP button to main menu
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = "self.mainMenu:addOption('credits',function()"
+position = "before"
+payload = '''
+if ap and ap.hasClient then
+	self.mainMenu:addOption('Archipelago', function()
+		if not ap.connected then
+			cs = bs.load('AP')
+		else 
+			cs = bs.load('ap-connected')
+		end
+		cs.bg = self.bg
+		self.menuMusicManager:clearOnBeatHooks()
+		self:leave()
+		cs.menuMusicManager = self.menuMusicManager
+		cs:init()
+	end, 17 * 8, nil, sprites.menu.archipelago)
+end
+'''
+match_indent = true
+
+# Hide Devlevelselect just in case they have it
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''self.mainMenu:addOption('devLevelSelect',function()'''
+position = "at"
+payload = '''if not ap.connected or ap.data.has_goal then self.mainMenu:addOption('devLevelSelect',function()'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''end, 17*7, nil, sprites.menu.developer)'''
+position = "at"
+payload = '''end, 17*7, nil, sprites.menu.developer) end'''
+match_indent = true
+
+# Hide Eventmode
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''self.mainMenu:addOption('playEvent',function()'''
+position = "at"
+payload = '''if not ap.connected or ap.data.has_goal then self.mainMenu:addOption('playEvent',function()'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''end, 0, nil, sprites.menu.eventMode)'''
+position = "at"
+payload = '''end, 0, nil, sprites.menu.eventMode) end'''
+match_indent = true

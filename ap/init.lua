@@ -1,16 +1,41 @@
-local apclientpp = require("lua-apclientpp")
+-- local apclientpp = require("lua-apclientpp")
+local ap = {
+	client = nil,
+	connected = false,
+	gui = require("ap.gui"),
+	utils = require("ap.utils"),
+	levels = {}
+}
 
-local ap = {}
+-- Load to cpath from mod folder
+if love.system.getOS() == "Windows" then
+	-- Find ap-block mod folder because bbp isnt loaded yet (CURSE YOU UI UTILS, YOU RUINED MY LIFE)
+	local path = ap.utils.getModsPath("ap-block")
+	if not path then
+		log("Wait... What do you mean theres no mods folder?", "AP-Block")
+	else
+		log("Found mods folder at \"" .. path .. "\"", "AP-Block")
+		ap.utils.addPathDll(path .. "/lua-apclientpp/windows/")
+	end
+end
 
-ap.gui = require("ap.gui")
-ap.utils = require("ap.utils")
+-- local ok, apclientpp = pcall(require, "lua-apclientpp")
+local ok, apclientpp = pcall(require, "lua-apclientpp")
 
-ap.client = nil
-ap.connected = false
+ap.hasClient = ok
+
+if not ok then
+	apclientpp = {
+		RenderFormat = {
+			TEXT = 0
+		}
+	} -- too lazy to add a check for this
+
+	log("Client not loaded, are you sure your using windows or proton?", "AP-Block")
+end
 
 -- Because im lazy
 local got_all_levels = false
-ap.levels = {}
 
 function ap.toast(title, msg)
 	local m = msg
@@ -195,24 +220,24 @@ function ap.get_all_levels()
 end
 
 --[[
-    Notes:
-        Official levels:
-            Level: levels/Finished levels/selfportrait/
-            Grade: 93.79
-            misses: 51
-            Barelies: 38
+	Notes:
+		Official levels:
+			Level: levels/Finished levels/selfportrait/
+			Grade: 93.79
+			misses: 51
+			Barelies: 38
 
-        Custom levels:
-            Level: Custom Levels/darksheep/
-            Grade: 98.08
-            misses: 64
-            Barelies: 62
+		Custom levels:
+			Level: Custom Levels/darksheep/
+			Grade: 98.08
+			misses: 64
+			Barelies: 62
 
-        Workshop levels:
-            Level: Workshop/3741465074/
-            Grade: 87.04
-            misses: 135
-            Barelies: 84
+		Workshop levels:
+			Level: Workshop/3741465074/
+			Grade: 87.04
+			misses: 135
+			Barelies: 84
 ]]
 
 -- Send
@@ -225,12 +250,12 @@ function ap.send(item)
 	local id = ap.data.locations[item]
 
 	if id == nil then
-		print("Item not found: " .. item)
+		log("Item not found: " .. item)
 		return
 	end
 
 	if not ap.client.checked_locations[id] == nil then
-		print("Already checked: " .. item)
+		log("Already checked: " .. item, "Ap Block")
 		return
 	end
 
@@ -378,6 +403,32 @@ function ap.checkFish(fish)
 	
 end
 
+function ap.checkMarathon(marathonData)
+	if ap.client == nil then
+		print("Hit fallback marathon check return :C")
+		return
+	end
+
+	if not ap.data.slot_data.marathonsanity then return end
+
+	ap.send("Marathon " .. marathonData.metadata.name)
+end
+
+function ap.checkAchievement(achivementID)
+	if ap.client == nil then
+		print("Hit fallback achievement check return :C")
+		return
+	end
+
+	if not ap.data.slot_data.achievementsanity then return end
+
+	local achivement = string.gsub(achivementID, "_", " ")
+
+	if ap.utils.tableHas(ap.data.achievements, achivement) then
+		ap.send("Achievement " .. achivement)
+	end
+end
+
 -- AP client
 -- global to this mod
 local game_name = "Beatblockapelago"
@@ -392,7 +443,6 @@ ap.data = {}
 
 function connect(server, slot, password)
 	function on_socket_connected()
-		ap.connected = true
 		print("Socket connected")
 	end
 
@@ -424,6 +474,7 @@ function connect(server, slot, password)
 
 	function on_slot_connected(slot_data)
 		print("Slot connected")
+		ap.connected = true
 
 		--print("slot_data: " .. bbp.utils.printTable(slot_data))
 		ap.data.allowFishing = false
@@ -441,6 +492,11 @@ function connect(server, slot, password)
 
 		ap.data.goal_level = slot_data.goal_level
 		ap.data.goal_rank = slot_data.goal_rank or "b minus"
+
+		ap.data.achievements = json.decode(slot_data.achievements)
+		ap.data.marathons = json.decode(slot_data.marathons)
+
+		ap.data.tangents = json.decode(slot_data.tangents) or {}
 
 		ap.data.locations = json.decode(slot_data.locations)
 		ap.data.items = json.decode(slot_data.items)
@@ -464,9 +520,9 @@ function connect(server, slot, password)
 		-- print("Target rank: " .. tostring(ap.data.slot_data.target_rank))
 		-- print("Ranksanity: " .. tostring(ap.data.slot_data.ranksanity))
 		-- print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
-		if ap.data.slot_data.fishsanity then
-			print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
-		end
+		-- if ap.data.slot_data.fishsanity then
+		-- 	print("Fishsanity: " .. tostring(ap.data.slot_data.fishsanity))
+		-- end
 
 		-- print("locations: " .. type(ap.data.locations))
 		-- bbp.utils.printTable(ap.data.locations, "locations", 1)
@@ -505,7 +561,10 @@ function connect(server, slot, password)
 
 	function on_slot_refused(reasons)
 		print("Slot refused: " .. table.concat(reasons, ", "))
+		ap.toast("Slot refused: \n" .. table.concat(reasons, ",\n"))
 		ap.client = nil
+		ap.data = {}
+		ap.connected = false
 		collectgarbage("collect")
 	end
 
@@ -614,4 +673,5 @@ function connect(server, slot, password)
 end
 
 --]]
+
 return ap

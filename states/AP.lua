@@ -1,13 +1,9 @@
 local st = Gamestate:new(MyCustomState)
 
-ap.utils.dpf.setModId("ap-block")
-
-local save = ap.utils.dpf.loadJson("save.json", { apslot = "" })
-
 ap.get_all_levels()
 
-local apip = save.apip or "archipelago.gg:"
-local apslot = save.apslot or ""
+local apip = mods["ap-block"].config.apid or "archipelago.gg:"
+local apslot = mods["ap-block"].config.apslot or ""
 local appassword = ""
 local apreset = false
 
@@ -23,10 +19,11 @@ function st:backroundInit()
 end
 
 function st:saveData()
-	save.apip = apip
-	save.apslot = apslot
+	mods["ap-block"].config.apid = apip
+	mods["ap-block"].config.apslot = apslot
 	-- No im not gonna save the password
-	ap.utils.dpf.saveJson("save.json", save)
+	bbp.utils.saveConfig("ap-block")
+	-- dpf.saveJson("ap_block_save.json", save)
 end
 
 -- [[ State functions ]]

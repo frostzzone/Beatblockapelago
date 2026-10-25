@@ -17,9 +17,19 @@ end
 
 -- [[ State functions ]]
 
+function st:hasLevel(level)
+
+end
+
 function st:GetPossibleMissing()
 	-- Get possible locations from missing locations
 	self.possible_missing_locations = {}
+
+	if not ap.client or not ap.client or not ap.data or not ap.data.goal_rank then
+		log("Skipping", 'AP-Block')
+		return
+	end
+	
 	for k, v in pairs(ap.client.missing_locations) do
 		local itemName = ap.data.id_to_location[tostring(v)]
 
@@ -30,8 +40,125 @@ function st:GetPossibleMissing()
 			if not ap.data.allowFishing then
 				break
 			end
-			-- table.insert(self.possible_missing_locations, itemName)
+			table.insert(self.possible_missing_locations, itemName)
+
+		-- Achievement ${achivement}
+		elseif itemName:match("Achievement") then
+			if not ap.data.slot_data.achievementsanity then
+				break
+			end
+
+			local achivementName = itemName:match("Achievement (.+)")
+			local achivement = ap.nameFormat(achivementName)
+
+			if achivement == "ladybug castle" or achivement == "why should crowns worry" then
+				local levelName = nil
+
+				if achivement == "ladybug castle" then
+					levelName = ap.nameFormat("Ladybug Castle")
+				elseif achivement == "why should crowns worry" then
+					levelName = ap.nameFormat("DAMOCLISM")
+				end
+
+				local level = nil
+				for k, v in pairs(ap.data.playable) do
+					if v.name == levelName then
+						level = v
+						break
+					end
+				end
+
+				if level then
+					-- Check if atom is unlocked
+					local APID = ap.data.atom_keys[level.atom]
+					for x,y in ipairs(ap.data.received) do
+						if y == APID or level.name == "Tutorial" then
+							table.insert(self.possible_missing_locations, itemName)
+							break
+						end
+					end
+				end
+			-- any tanjent check
+			elseif achivement == "comedy area" then
+				for i, v in ipairs(ap.data.tangents) do
+					local levelName = ap.nameFormat(v)
+
+					local canDo = false
+
+					-- Has level?
+					local level = nil
+					for k, v in pairs(ap.data.playable) do
+						if v.name == levelName then
+							level = v
+							break
+						end
+					end
+
+					if level then
+						-- Check if atom is unlocked
+						local APID = ap.data.atom_keys[level.atom]
+						for x,y in ipairs(ap.data.received) do
+							if y == APID or level.name == "Tutorial" then
+								canDo = true
+								break
+							end
+						end
+
+						if canDo then
+							table.insert(self.possible_missing_locations, itemName)
+							break
+						end
+					end
+				end
+			else
+				table.insert(self.possible_missing_locations, itemName)
+			end
 		
+		-- Marathon ${marathon}
+		elseif itemName:match("Marathon") then
+			local marathonName = itemName:match("Marathon (.+)")
+
+			-- Note: Table of level name strings
+			local levels = ap.data.marathons[marathonName]["levels"] or {}
+
+			local possible = true
+			for k, v in pairs(levels) do
+				local levelName = ap.nameFormat(v)
+
+				-- Has level?
+				local level = nil
+				for k, v in pairs(ap.data.playable) do
+					if v.name == levelName then
+						level = v
+						break
+					end
+				end
+
+				if level then
+					-- Check if atom is unlocked
+					local APID = ap.data.atom_keys[level.atom]
+					local unlocked = false
+					for x,y in ipairs(ap.data.received) do
+						if y == APID or level.name == "Tutorial" then
+							unlocked = true
+							break
+						end
+					end
+
+					if not unlocked then
+						possible = false
+						break
+					end
+				else
+					possible = false
+					break
+				end
+			end
+
+			if possible then
+				table.insert(self.possible_missing_locations, itemName)
+			end
+
 		-- ${level} Get ${rank} Rank
 		elseif itemName:match("Get") then
 			local levelName = itemName:match("(.+) Get (.+) Rank")

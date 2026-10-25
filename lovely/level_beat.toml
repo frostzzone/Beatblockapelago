@@ -3,13 +3,32 @@ version = "1.0.0"
 dump_lua = true
 priority = 1
 
+# [[patches]]
+# [patches.pattern]
+# target = "states/Results.lua"
+# pattern = 'st:setInit(function(self)'
+# position = "after"
+# payload = '''
+# print("Hey, it's me, it's verity!")
+# '''
+# match_indent = true
+
+# Send Results
 [[patches]]
 [patches.pattern]
 target = "states/Results.lua"
-pattern = 'st:setInit(function(self)'
+pattern = "savedata.lastPlayedLevel = cLevel"
 position = "after"
 payload = '''
-print("Hey, it's me, it's verity!")
+if ap.client ~= nil then
+	if returnData.state == 'SongSelect' then
+		if returnData.vars.topDirectory == 'levels/Songwheel/' then
+			ap.checkResults(cLevel, self)
+		end
+	else
+		ap.checkResults(cLevel, self)
+	end
+end
 '''
 match_indent = true
 

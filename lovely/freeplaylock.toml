@@ -61,3 +61,28 @@ end
 
 if allowFishing and not (filename == 'levels/Other/fishing/' and (not UnlockManager.isLevelPassed({'''
 match_indent = true
+
+# infinite fishing stamina (might add as a config option)
+# [[patches]]
+# [patches.pattern]
+# target = "states/Fishing.lua"
+# pattern = '''savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1'''
+# position = "at"
+# payload = '''
+# -- [ Inf stamina from ap-block ]
+# -- savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1
+# '''
+# match_indent = true
+
+# Make sure edit mode is disabled
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''st:setInit(function(self)'''
+position = "after"
+payload = '''if ap.connected and not ap.data.has_goal then
+    if self.topDirectory == 'levels/Songwheel/' then
+        self.allowEditor = false
+    end
+end'''
+match_indent = true

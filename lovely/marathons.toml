@@ -1,0 +1,104 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# Just in case self.menuItems is empty
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''menuItem.name = loc.get('quitToMenu')'''
+position = "after"
+payload = '''
+if #self.menuItems < 1 then table.insert(self.menuItems, menuItem) end
+'''
+match_indent = true
+
+# Check if all levels are unlocked
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''
+local marathonData = dpf.loadJson(filename .. 'marathon.json')
+'''
+position = "after"
+payload = '''
+local marathonPlayable = true
+
+if ap.connected and not ap.data.has_goal then
+	-- Thats not the level ring... right?
+	local haslevels = true
+
+	for i,v in ipairs(marathonData.levels) do
+		if not haslevels then break end
+
+		local levelmetadata = LevelManager:loadMetadata("levels/Finished levels/" .. v.level .. "/")
+		local levelunlocked = false
+
+		for x,y in ipairs(ap.data.playable) do
+			if not haslevels then break end
+
+			-- Tutorial edge case
+			if levelmetadata.metadata.songName == "Tutorial" then
+				levelunlocked = true
+				break
+			end
+
+			if y.name == levelmetadata.metadata.songName then
+
+				-- Atom check
+				local AtomUnlocked = false
+				local APID = ap.data.atom_keys[y.atom]
+				for x,y in ipairs(ap.data.received) do
+					AtomUnlocked = y == APID
+					if AtomUnlocked then break end
+				end
+
+				if not AtomUnlocked then break end
+
+				levelunlocked = true
+				break
+			end
+		end
+
+		if not levelunlocked then
+			haslevels = false
+			break
+		end
+	end
+	if not haslevels then
+		marathonPlayable = false
+	end
+end
+'''
+match_indent = true
+
+# If all levels are unlocked add it
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''
+menuItem.filename = filename
+	
+	table.insert(self.menuItems, menuItem)
+'''
+position = "at"
+payload = '''
+menuItem.filename = filename
+if marathonPlayable then
+	table.insert(self.menuItems, menuItem)
+end
+'''
+match_indent = true
+
+# Send marathon check
+[[patches]]
+[patches.pattern]
+target = "states/Marathon.lua"
+pattern = '''log('finished marathon')'''
+position = "after"
+payload = '''
+	ap.checkMarathon(self.marathonData)
+	-- log('They done beated it! ' + self.marathonData.metadata.name, "Ap Block")
+'''
+match_indent = true

@@ -22,11 +22,11 @@ source = "ap/utils.lua"
 before = "main.lua"
 name = "ap.utils"
 
-# Load ap files
+# Load ap files AFTER after dpf is loaded :cute:
 [[patches]]
 [patches.pattern]
 target = "main.lua"
-pattern = "function love.load(args)"
+pattern = "dpf.patchLoveFilesystem()"
 position = "after"
 payload = '''ap = require("ap")'''
 match_indent = true
@@ -52,50 +52,5 @@ payload = '''
 if ap.client ~= nil then
 	ap.checkFish(fish)
 end
-'''
-match_indent = true
-
-# temp inf stamina
-# [[patches]]
-# [patches.pattern]
-# target = "states/Fishing.lua"
-# pattern = "savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1"
-# position = "at"
-# payload = '''-- savedata.fishing.fishingPower = savedata.fishing.fishingPower - 1'''
-# match_indent = true
-
-# Send Results
-[[patches]]
-[patches.pattern]
-target = "states/Results.lua"
-pattern = "savedata.lastPlayedLevel = cLevel"
-position = "after"
-payload = '''
-if ap.client ~= nil then
-	ap.checkResults(cLevel, self)
-end
-'''
-match_indent = true
-
-
-# add menu button
-[[patches]]
-[patches.pattern]
-target = "states/Menu.lua"
-pattern = "self.mainMenu:addOption('credits',function()"
-position = "before"
-payload = '''
-self.mainMenu:addOption('Archipelago', function()
-	if not ap.connected then
-		cs = bs.load('AP')
-	else 
-		cs = bs.load('ap-connected')
-	end
-	cs.bg = self.bg
-	self.menuMusicManager:clearOnBeatHooks()
-	self:leave()
-	cs.menuMusicManager = self.menuMusicManager
-	cs:init()
-end, 17 * 8, nil, sprites.menu.archipelago)
 '''
 match_indent = true

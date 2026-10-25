@@ -1,0 +1,18 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+# TODO
+[[patches]]
+[patches.pattern]
+target = "obj/UnlockManager.lua"
+pattern = '''function UnlockManager.checkAchievementPredicate(id, pred, ifTrue,silent)'''
+position = "after"
+payload = '''
+if ap.connected and not ap.data.has_goal then
+    if pred() then ap.checkAchievement(id) end
+    -- print("Achievement Triggered: " .. id)
+end
+'''
+match_indent = true

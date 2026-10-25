@@ -85,3 +85,16 @@ else
 end
 '''
 match_indent = true
+
+# Prevent era_unlock_start (it causes a softlock)
+[[patches]]
+[patches.pattern]
+target = "obj/UnlockManager.lua"
+pattern = '''function UnlockManager.grabSaveValue(key, def)'''
+position = "after"
+payload = '''
+if key == "era_unlock_start" and ap.connected and not ap.data.has_goal then
+	return false
+end
+'''
+match_indent = true
